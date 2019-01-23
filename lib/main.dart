@@ -19,11 +19,112 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'cosco',
-      home: MyHomePage(),
+      //home: MyHomePage(),
+      home: TimeLine(),
     );
   }
 }
 
+
+class TimeLine extends StatefulWidget {
+  @override
+  _TimeLineState createState() => _TimeLineState();
+}
+
+class _TimeLineState extends State<TimeLine> {
+
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("リスト画面"),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.exit_to_app),
+            onPressed: () {
+//              print("login");
+//              showBasicDialog(context);
+            },
+          )
+        ],
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: StreamBuilder<QuerySnapshot>(
+            stream: Firestore.instance.collection('posts').snapshots(),
+            builder:
+                (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+              if (!snapshot.hasData) return const Text('Loading...');
+              return ListView.builder(
+
+                //データをいくつ持ってくるかの処理
+                itemCount: snapshot.data.documents.length,
+                padding: const EdgeInsets.only(top: 10.0),
+
+                //投稿を表示する処理にデータを送っている
+                itemBuilder: (context, index) =>
+                    _buildListItem(context, snapshot.data.documents[index]),
+              );
+            }),
+      ),
+      floatingActionButton: FloatingActionButton(
+          child: const Icon(Icons.add),
+          onPressed: () {
+            print("新規作成ボタンを押しました");
+
+            //画面遷移
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (BuildContext context) => MyHomePage()
+              ),
+            );
+          }),
+    );
+  }
+
+  //投稿表示する処理
+  Widget _buildListItem(BuildContext context, DocumentSnapshot document) {
+    return Card(
+      child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
+        ListTile(
+          leading: const Icon(Icons.android),
+          title: Text(document['comment']),
+          //subtitle: Text(document['date'].toString().substring(0,10))
+        ),
+        //写真表示
+        ImageUrl(imageUrl: document['url'])
+      ]),
+    );
+  }
+}
+  class ImageUrl extends StatelessWidget {
+  final String imageUrl;
+
+  ImageUrl({this.imageUrl});
+
+  @override
+  Widget build(BuildContext context) {
+  return Image.network(
+  imageUrl,
+  );
+  }
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/////////////////////
 class MyHomePage extends StatefulWidget {
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -41,8 +142,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    DocumentReference _mainReference;
-    _mainReference = Firestore.instance.collection('posts').document();
+//    DocumentReference _mainReference;
+//    _mainReference = Firestore.instance.collection('posts').document();
 
     return Scaffold(
       appBar: AppBar(
@@ -108,6 +209,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
                         //firebaseに写真とテキストを保存する処理
                         uploadImageText();
+
+                        Navigator.pop(context);
                       }
 
                       //画面遷移
@@ -226,15 +329,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
   //画像表示する処理。
   Widget enableUpload(){
-
-    //保存する写真の名前を変更するためにUUIDを生成している
-    final String uuid = Uuid().v1();
-
     return Container(
         child: Column(
             children: <Widget>[
+              //写真を表示する場所
               Image.file(_imageFile, height: 300.0, width: 300.0),
-//
             ]
         )
     );
@@ -243,13 +342,16 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<String> uploadImageText() async{
 
+    //保存する写真の名前を変更するためにUUIDを生成している
+    final String uuid = Uuid().v1();
+
     DocumentReference _mainReference;
     _mainReference = Firestore.instance.collection('posts').document();
 
     //_imageFileに格納されている画像をfirebaseStorageに保存している。
     final StorageReference firebaseStorageRef =
     //imageフォルダの中に写真を保存している
-    FirebaseStorage.instance.ref().child('image').child('image.jpeg');
+    FirebaseStorage.instance.ref().child('image').child('$uuid.jpeg');
     final StorageUploadTask task = firebaseStorageRef.putFile(_imageFile);
 
     //写真のurlをダウンロードしている
