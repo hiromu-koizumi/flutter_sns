@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "581382651981",
+    "firebase_url": "https://fluttercos.firebaseio.com",
+    "project_id": "fluttercos",
+    "storage_bucket": "fluttercos.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:581382651981:android:0dbd5a7d62709b58",
+        "android_client_info": {
+          "package_name": "com.example.fluttercos"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "581382651981-7b2nu3hc5lq3m0vpfbgbt0ufm9qnh18j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAgsMlRX_WKlrvuKvM28b-cGGY9a2-rJgk"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
