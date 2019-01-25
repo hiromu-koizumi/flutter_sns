@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cos/login.dart';
+import 'package:flutter_cos/my_page.dart';
 import 'package:flutter_cos/post.dart';
 
 //ユーザー登録
@@ -46,7 +47,24 @@ class _TimeLineState extends State<TimeLine> {
             icon: Icon(Icons.exit_to_app),
             onPressed: () {
               print("login");
+
+              //ログイン画面表示
               showBasicDialog(context);
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.account_circle),
+            onPressed: () {
+              print("mypage");
+              //画面遷移
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    settings: const RouteSettings(name: "/myPage"),
+                    builder: (BuildContext context) =>
+                        MyPage()
+                ),
+              );
             },
           )
         ],
@@ -56,7 +74,9 @@ class _TimeLineState extends State<TimeLine> {
         child: StreamBuilder<QuerySnapshot>(
 
           //uidはユーザーの情報を取得する。firebaseUserにはログインしたユーザーが格納されている。だからここではログインしたユーザーの情報を取得している。
-            stream: Firestore.instance.collection('users').document(firebaseUser.uid).collection("transaction").snapshots(),
+            //stream: Firestore.instance.collection('users').document(firebaseUser.uid).collection("transaction").snapshots(),
+            stream: Firestore.instance.collection('posts').snapshots(),
+
             builder:
                 (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
               if (!snapshot.hasData) return const Text('Loading...');
