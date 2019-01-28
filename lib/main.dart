@@ -75,7 +75,9 @@ class _TimeLineState extends State<TimeLine> {
 
           //uidはユーザーの情報を取得する。firebaseUserにはログインしたユーザーが格納されている。だからここではログインしたユーザーの情報を取得している。
             //stream: Firestore.instance.collection('users').document(firebaseUser.uid).collection("transaction").snapshots(),
-            stream: Firestore.instance.collection('posts').snapshots(),
+
+          //orderByで新しく投稿したものを上位に表示させている。投稿に保存されているtimeを見て判断している
+            stream: Firestore.instance.collection('posts').orderBy("time", descending: true).snapshots(),
 
             builder:
                 (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
@@ -105,7 +107,8 @@ class _TimeLineState extends State<TimeLine> {
                       PostPage(null) //null 編集機能付けるのに必要っぽい
                   ),
             );
-          }),
+          }
+          ),
     );
   }
 
@@ -123,28 +126,6 @@ class _TimeLineState extends State<TimeLine> {
             //substringで表示する時刻を短縮している
             subtitle: Text(document['time'].toString().substring(0, 10))),
 
-        //編集ボタン
-        ButtonTheme.bar(
-          child: ButtonBar(
-            children: <Widget>[
-              FlatButton(
-                child: const Text('編集'),
-                onPressed: () {
-                  print("編集ボタンを押しました");
-                  //編集処理,画面遷移
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        settings: const RouteSettings(name: "/edit"),
-
-                        //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
-                        builder: (BuildContext context) => PostPage(document)),
-                  );
-                },
-              )
-            ],
-          ),
-        )
       ]),
     );
   }

@@ -38,14 +38,12 @@ class _PostPageState extends State<PostPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final _FormData _data = _FormData();
 
-
-
-
   @override
   Widget build(BuildContext context) {
 
     //新規投稿時のデータベース保存先作成
     DocumentReference _mainReference;
+
 
     //_mainReference = Firestore.instance.collection('users').document(firebaseUser.uid).collection("transaction").document();
     _mainReference = Firestore.instance.collection('posts').document();
@@ -61,7 +59,6 @@ class _PostPageState extends State<PostPage> {
       }
 
       //編集ボタン押したときのデータベースの参照先
-      //_mainReference = Firestore.instance.collection('users').document(firebaseUser.uid).collection("transaction").document(widget.document.documentID);
       _mainReference = Firestore.instance.collection('posts').document(widget.document.documentID);
 
       deleteFlg = true;
@@ -301,10 +298,6 @@ class _PostPageState extends State<PostPage> {
     //保存する写真の名前を変更するためにUUIDを生成している
     final String uuid = Uuid().v1();
 
-    DocumentReference _userReference;
-    _userReference = Firestore.instance.collection('users').document(firebaseUser.uid).collection("transaction").document();
-
-
     //DocumentReference _mainReference;
     //_mainReference = Firestore.instance.collection('users').document(firebaseUser.uid).collection("transaction").document();
 
@@ -332,15 +325,6 @@ class _PostPageState extends State<PostPage> {
       "imagePath" : _data.imagePath,
       "userId" : firebaseUser.uid
     });
-
-    final userPostId = _mainReference.documentID;
-
-    _userReference.setData({
-      "post": userPostId
-    });
-
-
-
 
     return _data.url;
 

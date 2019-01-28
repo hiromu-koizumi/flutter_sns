@@ -1,4 +1,5 @@
 //splash画面処理
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cos/main.dart';
@@ -47,18 +48,32 @@ void _getUser(BuildContext context) async {
 
 void showBasicDialog(BuildContext context) {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  String email, password;
+  String email, password, name ;
 
   //匿名アカウントと永久アカウントの処理を分けてる
   if (firebaseUser.isAnonymous) {
     showDialog(
       context: context,
       builder: (BuildContext) => AlertDialog(
-            title: Text("ログイン/登録ダイアログ"),
+            title: Text("ログイン/登録"),
             content: Form(
                 key: _formKey,
                 child: Column(
                   children: <Widget>[
+                    TextFormField(
+                      decoration: const InputDecoration(
+                        icon: const Icon(Icons.perm_identity),
+                        labelText: 'Name',
+                      ),
+                      onSaved: (String value) {
+                        name = value;
+                      },
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return 'Nameは必須入力です';
+                        }
+                      },
+                    ),
                     TextFormField(
                       decoration: const InputDecoration(
                         icon: const Icon(Icons.mail),
@@ -107,7 +122,7 @@ void showBasicDialog(BuildContext context) {
                 onPressed: () {
                   if (_formKey.currentState.validate()) {
                     _formKey.currentState.save();
-                    _createUser(context, email, password);
+                    _createUser(context, email, password, );
                   }
                 },
               ),
@@ -163,11 +178,12 @@ void _signIn(BuildContext context, String email, String password) async {
 //メールアドレスとパスワードで新規ユーザー作瀬尾
 void _createUser(BuildContext context, String email, String password) async {
   try {
-    //作成している
+    //Authenticationにユーザーを作成している
     await _auth.createUserWithEmailAndPassword(
         email: email, password: password);
 
-    Navigator.pushNamedAndRemoveUntil(context, "?", (_) => false);
+
+    Navigator.pushNamedAndRemoveUntil(context, "/", (_) => false);
   } catch (e) {
     Fluttertoast.showToast(msg: "Firebaseの登録に失敗しました");
   }
