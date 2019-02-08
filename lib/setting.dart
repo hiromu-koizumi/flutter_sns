@@ -27,6 +27,7 @@ class _SettingPageState extends State<SettingPage> {
 //});
 
 
+
   @override
   Widget build(BuildContext context) {
 
@@ -120,6 +121,8 @@ class _SettingPageState extends State<SettingPage> {
 
   Future<String> uploadText(_userReference) async{
 
+    //final String aaa = "NoName";
+
     //保存する写真の名前を変更するためにUUIDを生成している
     final String uuid = Uuid().v1();
 
@@ -148,6 +151,8 @@ class _SettingPageState extends State<SettingPage> {
       "profile": _data.profile,
 
     });
+
+
 
     //return _data.url;
 

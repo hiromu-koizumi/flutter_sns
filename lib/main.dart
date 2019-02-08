@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cos/message_page.dart';
 import 'package:flutter_cos/login.dart';
 import 'package:flutter_cos/my_page.dart';
 import 'package:flutter_cos/post.dart';
@@ -38,6 +39,7 @@ class TimeLine extends StatefulWidget {
 }
 
 class _TimeLineState extends State<TimeLine> {
+
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -69,6 +71,8 @@ class _TimeLineState extends State<TimeLine> {
           )
         ],
       ),
+
+
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: StreamBuilder<QuerySnapshot>(
@@ -76,7 +80,8 @@ class _TimeLineState extends State<TimeLine> {
           //uidはユーザーの情報を取得する。firebaseUserにはログインしたユーザーが格納されている。だからここではログインしたユーザーの情報を取得している。
             //stream: Firestore.instance.collection('users').document(firebaseUser.uid).collection("transaction").snapshots(),
 
-          //orderByで新しく投稿したものを上位に表示させている。投稿に保存されているtimeを見て判断している
+
+          //orderByで新しく投稿したものを上位に表示させている。投稿に保存されているtimeを見て判断している.
             stream: Firestore.instance.collection('posts').orderBy("time", descending: true).snapshots(),
 
             builder:
@@ -92,7 +97,9 @@ class _TimeLineState extends State<TimeLine> {
                     _buildListItem(context, snapshot.data.documents[index]),
               );
             }),
+
       ),
+
       floatingActionButton: FloatingActionButton(
           child: const Icon(Icons.add),
           onPressed: () {
@@ -124,9 +131,55 @@ class _TimeLineState extends State<TimeLine> {
             title: Text(document['comment']),
 
             //substringで表示する時刻を短縮している
-            subtitle: Text(document['time'].toString().substring(0, 10))),
+            subtitle: Text(document['time'].toString().substring(0, 10)),
+
+
+        ),
+        //編集ボタン
+        ButtonTheme.bar(
+          child: ButtonBar(
+            children: <Widget>[
+              FlatButton(
+                child: const Icon(Icons.favorite),
+                onPressed: () {
+                  print("いいねボタンを押しました");
+                  //編集処理,画面遷移
+//                  Navigator.push(
+//                    context,
+//                    MaterialPageRoute(
+//                        settings: const RouteSettings(name: "/edit"),
+//
+//                        //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
+//                        builder: (BuildContext context) => PostPage(document)),
+//                  );
+                },
+              ),
+
+              FlatButton(
+                child: const Icon(Icons.comment),
+                onPressed: () {
+                  print("コメントボタンを押しました");
+
+
+                  //コメントページに画面遷移
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        settings: const RouteSettings(name: "/comment"),
+
+                        //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
+                        builder: (BuildContext context) => MessagePage(document)),
+                  );
+                },
+              )
+            ],
+          ),
+        )
+
+
 
       ]),
+
     );
   }
 }

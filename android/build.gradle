@@ -9,6 +9,8 @@ buildscript {
 
         //firebase使用のため追加
         classpath 'com.google.gms:google-services:4.0.1'
+
+
     }
 }
 
