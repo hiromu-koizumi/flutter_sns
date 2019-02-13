@@ -4,6 +4,11 @@ import 'package:uuid/uuid.dart';
 import 'login.dart';
 
 class SettingPage extends StatefulWidget {
+
+//mypageから渡されたユーザー情報を受け取っている
+  SettingPage(this.userInformation);
+   final DocumentSnapshot userInformation;
+
   @override
   _SettingPageState createState() => _SettingPageState();
 }
@@ -21,10 +26,6 @@ class _SettingPageState extends State<SettingPage> {
   final _UserData _data = _UserData();
 
 
-////ユーザーネームをdatabaseに保存
-//_userReference.setData({
-//"name" : name
-//});
 
 
 
@@ -33,6 +34,23 @@ class _SettingPageState extends State<SettingPage> {
 
     DocumentReference _userReference;
     _userReference = Firestore.instance.collection('users').document(firebaseUser.uid).collection("transaction").document();
+
+
+
+    if (widget.userInformation != null) {
+      if (_data.userName == null && _data.profile == null) {
+        _data.userName = widget.userInformation['userName'];
+        _data.profile = widget.userInformation['profile'];
+        print('${_data.userName}');
+
+      }
+
+      //編集ボタン押したときのデータベースの参照先
+      _userReference = Firestore.instance.collection('users').document(firebaseUser.uid).collection("transaction").document(widget.userInformation.documentID);
+
+//      deleteFlg = true;
+    }
+
 
 
     return Scaffold(
@@ -46,6 +64,7 @@ class _SettingPageState extends State<SettingPage> {
                 child: ListView(
                     padding: const EdgeInsets.all(20.0),
                     children: <Widget>[
+
               //ユーザー名テキストフィールド
               TextFormField(
                 decoration: const InputDecoration(
@@ -67,7 +86,7 @@ class _SettingPageState extends State<SettingPage> {
 //                },
 
                 //編集ボタン押した後のコメント欄に元あった文字を表示するのに必要。
-                // initialValue: _data.comment,
+                 initialValue: _data.userName,
               ),
 
               //プロフィールテキストフィールド
@@ -91,7 +110,7 @@ class _SettingPageState extends State<SettingPage> {
 //                },
 
                 //編集ボタン押した後のコメント欄に元あった文字を表示するのに必要。
-                //initialValue: _data.comment,
+                initialValue: _data.profile,
               ),
 
               //投稿ボタン

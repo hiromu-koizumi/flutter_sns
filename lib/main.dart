@@ -182,6 +182,9 @@ class _TimeLineState extends State<TimeLine> {
 
     );
   }
+
+
+
 }
 
 //urlから画像を表示する処理

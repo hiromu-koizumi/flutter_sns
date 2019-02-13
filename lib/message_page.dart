@@ -25,7 +25,7 @@ class _MessagePageState extends State<MessagePage> {
   Widget build(BuildContext context) {
 
     //_userNameにfirebaseに保存されているユーザー名を代入する処理
-    user();
+    userNameSubstitution();
 
     return new Scaffold(
         appBar: new AppBar(
@@ -154,7 +154,7 @@ class _MessagePageState extends State<MessagePage> {
   }
 
   //_userNameという変数にfirebaseに保存されているユーザー名を代入
-Widget user() {
+Widget userNameSubstitution() {
   Firestore.instance
       .collection('users')
       .document(firebaseUser.uid)
