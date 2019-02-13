@@ -140,29 +140,9 @@ class _SettingPageState extends State<SettingPage> {
 
   Future<String> uploadText(_userReference) async{
 
-    //final String aaa = "NoName";
 
     //保存する写真の名前を変更するためにUUIDを生成している
     final String uuid = Uuid().v1();
-
-    //DocumentReference _mainReference;
-    //_mainReference = Firestore.instance.collection('users').document(firebaseUser.uid).collection("transaction").document();
-
-    //_imageFileに格納されている画像をfirebaseStorageに保存している。
-    //final StorageReference firebaseStorageRef =
-    //imageフォルダの中に写真を保存している
-    //FirebaseStorage.instance.ref().child('image').child('$uuid.jpeg');
-    //final StorageUploadTask task = firebaseStorageRef.putFile(_imageFile);
-
-   // _data.imagePath = uuid + '.jpeg';
-
-    //写真のurlをダウンロードしている
-    //var downUrl = await (await task.onComplete).ref.getDownloadURL();
-
-    //urlに写真のURLを格納
-    //_data.url = downUrl.toString();
-
-    //print("download url : $_data.url");
 
     //firebaseDatebaseに保存している
     _userReference.setData({
@@ -170,10 +150,6 @@ class _SettingPageState extends State<SettingPage> {
       "profile": _data.profile,
 
     });
-
-
-
-    //return _data.url;
 
   }
 

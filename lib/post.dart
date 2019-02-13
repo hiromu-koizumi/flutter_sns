@@ -81,12 +81,9 @@ class _PostPageState extends State<PostPage> {
             onPressed: !deleteFlg? null:() {
               print('削除ボタンを押しました');
 
-              //_data.imagePathだと$_data.imagePathで展開できないから代入している
-              final deleteImage = _data.imagePath;
-
               //firebaseStorageからデータを削除
               final StorageReference firebaseStorageRef =
-              FirebaseStorage.instance.ref().child('image').child('$deleteImage');
+              FirebaseStorage.instance.ref().child('image').child('${_data.imagePath}');
               firebaseStorageRef.delete();
 
               //firebaseDatabaseからデータを削除
@@ -159,6 +156,8 @@ class _PostPageState extends State<PostPage> {
 
   }
 
+  //写真が追加、変更されたか
+  bool photoEditAdd = false;
 
   //選んだ写真が格納される場所
   File _imageFile;
@@ -171,6 +170,7 @@ class _PostPageState extends State<PostPage> {
 
         //写真を代入
         _imageFile = image;
+         photoEditAdd = true;
       });
 
       //他でも使える形式に変更している。
@@ -301,21 +301,36 @@ class _PostPageState extends State<PostPage> {
     //DocumentReference _mainReference;
     //_mainReference = Firestore.instance.collection('users').document(firebaseUser.uid).collection("transaction").document();
 
-    //_imageFileに格納されている画像をfirebaseStorageに保存している。
-    final StorageReference firebaseStorageRef =
-    //imageフォルダの中に写真を保存している
-    FirebaseStorage.instance.ref().child('image').child('$uuid.jpeg');
-    final StorageUploadTask task = firebaseStorageRef.putFile(_imageFile);
+    //写真に変更を加えたときの処理
+    if (photoEditAdd == true) {
 
-    _data.imagePath = uuid + '.jpeg';
+      //写真を編集した時以前の写真をFirebabseStorageから削除
+      if ( _data.imagePath != null) {
+        //firebaseStorageからデータを削除
+        final StorageReference firebaseStorageRef =
+        FirebaseStorage.instance.ref().child('image').child(
+            '${_data.imagePath}');
+        firebaseStorageRef.delete();
+      }
 
-    //写真のurlをダウンロードしている
-    var downUrl = await (await task.onComplete).ref.getDownloadURL();
 
-    //urlに写真のURLを格納
-    _data.url = downUrl.toString();
+      //_imageFileに格納されている画像をfirebaseStorageに保存している。
+      final StorageReference firebaseStorageRef =
+      //imageフォルダの中に写真を保存している
+      FirebaseStorage.instance.ref().child('image').child('$uuid.jpeg');
+      final StorageUploadTask task = firebaseStorageRef.putFile(_imageFile);
 
-    print("download url : $_data.url");
+      _data.imagePath = uuid + '.jpeg';
+
+      //写真のurlをダウンロードしている
+      var downUrl = await (await task.onComplete).ref.getDownloadURL();
+
+
+      //urlに写真のURLを格納
+      _data.url = downUrl.toString();
+
+      print("download url : $_data.url");
+    }
 
     //firebaseDatebaseに保存している
     _mainReference.setData({
@@ -326,7 +341,7 @@ class _PostPageState extends State<PostPage> {
       "userId" : firebaseUser.uid
     });
 
-    return _data.url;
+    //return _data.url;
 
   }
 }

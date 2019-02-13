@@ -6,41 +6,40 @@ import 'package:flutter_cos/post.dart';
 import 'package:flutter_cos/setting.dart';
 import 'dart:math' as math;
 
-DocumentSnapshot userInformation;
-class MyPage extends StatelessWidget {
+//格子状に表示する
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
+DocumentSnapshot userInformation;
+
+class MyPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        appBar: AppBar(title: Text('マイページ'),actions: <Widget>[
-        IconButton(
-          icon: Icon(Icons.settings),
-          onPressed: () {
-            //画面遷移
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                  settings: const RouteSettings(name: "/setting"),
-                  builder: (BuildContext context) =>
-                      SettingPage(userInformation) //null 編集機能付けるのに必要っぽい
-                  ),
-            );
-          },
-        ),
-      ]),
-        body: MyPages()
-      ),
+          appBar: AppBar(title: Text('マイページ'), actions: <Widget>[
+            IconButton(
+              icon: Icon(Icons.settings),
+              onPressed: () {
+                //画面遷移
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      settings: const RouteSettings(name: "/setting"),
+                      builder: (BuildContext context) =>
+                          SettingPage(userInformation) //null 編集機能付けるのに必要っぽい
+                      ),
+                );
+              },
+            ),
+          ]),
+          body: MyPages()),
     );
   }
 }
 
-
 class MyPages extends StatefulWidget {
   @override
   _MyPageState createState() => _MyPageState();
-
-
 }
 
 //名前を表示するためにつけた
@@ -50,21 +49,23 @@ class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
     @required this.maxHeight,
     @required this.child,
   });
+
   final double minHeight;
   final double maxHeight;
   final Widget child;
+
   @override
   double get minExtent => minHeight;
+
   @override
   double get maxExtent => math.max(maxHeight, minHeight);
+
   @override
   Widget build(
-      BuildContext context,
-      double shrinkOffset,
-      bool overlapsContent)
-  {
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
     return new SizedBox.expand(child: child);
   }
+
   @override
   bool shouldRebuild(_SliverAppBarDelegate oldDelegate) {
     return maxHeight != oldDelegate.maxHeight ||
@@ -74,11 +75,9 @@ class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
 }
 
 class _MyPageState extends State<MyPages> {
-
 //class CollapsingList extends StatelessWidget {
   SliverPersistentHeader makeHeader() {
     return SliverPersistentHeader(
-
       //スクロールしたときにヘッダーが消える
       pinned: false,
 
@@ -86,66 +85,40 @@ class _MyPageState extends State<MyPages> {
         minHeight: 60.0,
         maxHeight: 200.0,
         child: Container(
-            color: Colors.lightBlue, child: Center(child:
-        userName()
-
-        )),
+            color: Colors.lightBlue, child: Center(child: userName())),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    return StreamBuilder<QuerySnapshot>(
+        stream: Firestore.instance
+            .collection('posts')
+            .orderBy("time", descending: true)
+            .where("userId", isEqualTo: firebaseUser.uid)
+            .snapshots(),
 
-    return CustomScrollView(
-      slivers: <Widget>[
-
-        makeHeader(),
-        SliverGrid.count(
-          crossAxisCount: 2,
-          children: [
-            Padding(
-                padding: const EdgeInsets.all(8.0),
-
-                //StreamBuilderはstreamに追加されるものがあれば自動的に更新する
-                child: StreamBuilder<QuerySnapshot>(
-
-                  //uidはユーザーの情報を取得する。firebaseUserにはログインしたユーザーが格納されている。だからここではログインしたユーザーの情報を取得している。
-                  //stream: Firestore.instance.collection('users').document(firebaseUser.uid).collection("transaction").snapshots(),
-                  //whereで自分のユーザーIDと同じユーザーIDを持った投稿を取り出している。
-
-                    stream: Firestore.instance
-                        .collection('posts')
-                        .orderBy("time", descending: true)
-                        .where("userId", isEqualTo: firebaseUser.uid)
-                        .snapshots(),
-
-                    //streamが更新されるたびに呼ばれる
-                    builder: (BuildContext context,
-                        AsyncSnapshot<QuerySnapshot> snapshot) {
-                      if (!snapshot.hasData) return const Text('Loading...');
-                      return ListView.builder(
-                        //データをいくつ持ってくるかの処理
-                        itemCount: snapshot.data.documents.length,
-                        padding: const EdgeInsets.only(top: 10.0),
-
-                        //投稿を表示する処理にデータを送っている
-                        itemBuilder: (context, index) =>
-                            _MyPageList(
-                                context, snapshot.data.documents[index]),
-                      );
-                    })
-            ),
-
-
-          ], //chil
-        ),
-      ],
-
-
-    );
+        //streamが更新されるたびに呼ばれる
+        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          if (!snapshot.hasData) return const Text('Loading...');
+          return CustomScrollView(
+            slivers: <Widget>[
+              makeHeader(),
+              SliverStaggeredGrid.countBuilder(
+                crossAxisCount: 2,
+                itemBuilder: (context, index) {
+                  DocumentSnapshot documentSnapshot =
+                      snapshot.data.documents[index];
+                  return _MyPageList(context, documentSnapshot);
+                },
+                staggeredTileBuilder: (int index) => const StaggeredTile.fit(1),
+                itemCount: snapshot.data.documents.length,
+              ),
+            ],
+          );
+        });
   }
-
 
   //投稿表示する処理
   Widget _MyPageList(BuildContext context, DocumentSnapshot document) {
@@ -160,8 +133,7 @@ class _MyPageState extends State<MyPages> {
             title: Text(document['comment']),
 
             //substringで表示する時刻を短縮している
-            subtitle: Text(document['time'].toString().substring(0, 10))
-        ),
+            subtitle: Text(document['time'].toString().substring(0, 10))),
 
         //編集ボタン
         ButtonTheme.bar(
@@ -189,153 +161,24 @@ class _MyPageState extends State<MyPages> {
     );
   }
 
-
   Widget userName() {
-
     return StreamBuilder<QuerySnapshot>(
-
-        stream:Firestore.instance
-        .collection('users')
-        .document(firebaseUser.uid)
-        .collection("transaction")
-        .snapshots(),
+        stream: Firestore.instance
+            .collection('users')
+            .document(firebaseUser.uid)
+            .collection("transaction")
+            .snapshots(),
 
         //streamが更新されるたびに呼ばれる
-        builder: (BuildContext context,
-            AsyncSnapshot<QuerySnapshot> snapshot) {
-
+        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (!snapshot.hasData) return const Text('Loading...');
 
           userInformation = snapshot.data.documents[0];
 
-
           return Column(children: <Widget>[
             Text(snapshot.data.documents[0]['userName']),
-          Text(snapshot.data.documents[0]['profile']),
-
+            Text(snapshot.data.documents[0]['profile']),
           ]);
-
         });
   }
-
-
-
 }
-
-//class MyPage extends StatefulWidget {
-//  @override
-//  _MyPageState createState() => _MyPageState();
-//}
-//
-//
-//
-//
-//class _MyPageState extends State<MyPage> {
-//  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-//
-//  @override
-//  Widget build(BuildContext context) {
-//    return Scaffold(
-//      appBar: AppBar(title: Text('MyPage'), actions: <Widget>[
-//        IconButton(
-//          icon: Icon(Icons.settings),
-//          onPressed: () {
-//            //画面遷移
-//            Navigator.push(
-//              context,
-//              MaterialPageRoute(
-//                  settings: const RouteSettings(name: "/setting"),
-//                  builder: (BuildContext context) =>
-//                      SettingPage() //null 編集機能付けるのに必要っぽい
-//                  ),
-//            );
-//          },
-//        ),
-//      ]),
-//
-//      body:
-//
-//
-//
-//      Padding(
-//          padding: const EdgeInsets.all(8.0),
-//
-//          //StreamBuilderはstreamに追加されるものがあれば自動的に更新する
-//          child: StreamBuilder<QuerySnapshot>(
-//
-//              //uidはユーザーの情報を取得する。firebaseUserにはログインしたユーザーが格納されている。だからここではログインしたユーザーの情報を取得している。
-//              //stream: Firestore.instance.collection('users').document(firebaseUser.uid).collection("transaction").snapshots(),
-//              //whereで自分のユーザーIDと同じユーザーIDを持った投稿を取り出している。
-//
-//              stream: Firestore.instance
-//                  .collection('posts')
-//                  .orderBy("time", descending: true)
-//                  .where("userId", isEqualTo: firebaseUser.uid)
-//                  .snapshots(),
-//
-//              //streamが更新されるたびに呼ばれる
-//              builder: (BuildContext context,
-//                  AsyncSnapshot<QuerySnapshot> snapshot) {
-//                if (!snapshot.hasData) return const Text('Loading...');
-//                return ListView.builder(
-//                  //データをいくつ持ってくるかの処理
-//                  itemCount: snapshot.data.documents.length,
-//                  padding: const EdgeInsets.only(top: 10.0),
-//
-//                  //投稿を表示する処理にデータを送っている
-//                  itemBuilder: (context, index) =>
-//                      _MyPageList(context, snapshot.data.documents[index]),
-//                );
-//              })
-//      ),
-//
-//
-//
-//
-//    );
-//  }
-//
-//  //投稿表示する処理
-//  Widget _MyPageList(BuildContext context, DocumentSnapshot document) {
-//    return Card(
-//      child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
-//        //写真表示
-//
-//        ImageUrl(imageUrl: document['url']),
-//
-//        ListTile(
-//            leading: const Icon(Icons.android),
-//            title: Text(document['comment']),
-//
-//            //substringで表示する時刻を短縮している
-//            subtitle: Text(document['time'].toString().substring(0, 10))
-//        ),
-//
-//        //編集ボタン
-//        ButtonTheme.bar(
-//          child: ButtonBar(
-//            children: <Widget>[
-//              FlatButton(
-//                child: const Text('編集'),
-//                onPressed: () {
-//                  print("編集ボタンを押しました");
-//                  //編集処理,画面遷移
-//                  Navigator.push(
-//                    context,
-//                    MaterialPageRoute(
-//                        settings: const RouteSettings(name: "/edit"),
-//
-//                        //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
-//                        builder: (BuildContext context) => PostPage(document)),
-//                  );
-//                },
-//              )
-//            ],
-//          ),
-//        )
-//      ]),
-//    );
-//  }
-//
-//
-//}
