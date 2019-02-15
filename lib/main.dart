@@ -26,12 +26,10 @@ class MyApp extends StatelessWidget {
         '/': (_) => Splash(),
         '/timeline': (_) => TimeLine(),
       },
-     // home: TimeLine(),
+      // home: TimeLine(),
     );
   }
 }
-
-
 
 class TimeLine extends StatefulWidget {
   @override
@@ -40,7 +38,10 @@ class TimeLine extends StatefulWidget {
 
 class _TimeLineState extends State<TimeLine> {
 
+  var _savedDocumentID;
+
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("リスト画面"),
@@ -63,27 +64,24 @@ class _TimeLineState extends State<TimeLine> {
                 context,
                 MaterialPageRoute(
                     settings: const RouteSettings(name: "/myPage"),
-                    builder: (BuildContext context) =>
-                        MyPage()
-                ),
+                    builder: (BuildContext context) => MyPage()),
               );
             },
           )
         ],
       ),
-
-
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: StreamBuilder<QuerySnapshot>(
 
-          //uidはユーザーの情報を取得する。firebaseUserにはログインしたユーザーが格納されている。だからここではログインしたユーザーの情報を取得している。
+            //uidはユーザーの情報を取得する。firebaseUserにはログインしたユーザーが格納されている。だからここではログインしたユーザーの情報を取得している。
             //stream: Firestore.instance.collection('users').document(firebaseUser.uid).collection("transaction").snapshots(),
 
-
-          //orderByで新しく投稿したものを上位に表示させている。投稿に保存されているtimeを見て判断している.
-            stream: Firestore.instance.collection('posts').orderBy("time", descending: true).snapshots(),
-
+            //orderByで新しく投稿したものを上位に表示させている。投稿に保存されているtimeを見て判断している.
+            stream: Firestore.instance
+                .collection('posts')
+                .orderBy("time", descending: true)
+                .snapshots(),
             builder:
                 (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
               if (!snapshot.hasData) return const Text('Loading...');
@@ -92,14 +90,13 @@ class _TimeLineState extends State<TimeLine> {
                 itemCount: snapshot.data.documents.length,
                 padding: const EdgeInsets.only(top: 10.0),
 
+
                 //投稿を表示する処理にデータを送っている
                 itemBuilder: (context, index) =>
                     _buildListItem(context, snapshot.data.documents[index]),
               );
             }),
-
       ),
-
       floatingActionButton: FloatingActionButton(
           child: const Icon(Icons.add),
           onPressed: () {
@@ -114,52 +111,61 @@ class _TimeLineState extends State<TimeLine> {
                       PostPage(null) //null 編集機能付けるのに必要っぽい
                   ),
             );
-          }
-          ),
+          }),
     );
   }
 
+ bool favorite;
   //投稿表示する処理
   Widget _buildListItem(BuildContext context, DocumentSnapshot document) {
+
+
+
+
     return Card(
       child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
         //写真表示
         ImageUrl(imageUrl: document['url']),
 
         ListTile(
-            leading: const Icon(Icons.android),
-            title: Text(document['comment']),
+          leading: const Icon(Icons.android),
+          title: Text(document['comment']),
 
-            //substringで表示する時刻を短縮している
-            subtitle: Text(document['time'].toString().substring(0, 10)),
-
-
+          //substringで表示する時刻を短縮している
+          subtitle: Text(document['time'].toString().substring(0, 10)),
         ),
         //編集ボタン
-        ButtonTheme.bar(
+
+    ButtonTheme.bar(
           child: ButtonBar(
             children: <Widget>[
               FlatButton(
-                child: const Icon(Icons.favorite),
+                child: Icon(
+                  favorite == true ? Icons.favorite : Icons.favorite_border,
+                  color: favorite == true ? Colors.red : Colors.black38,
+                ),
                 onPressed: () {
+
                   print("いいねボタンを押しました");
-                  //編集処理,画面遷移
-//                  Navigator.push(
-//                    context,
-//                    MaterialPageRoute(
-//                        settings: const RouteSettings(name: "/edit"),
-//
-//                        //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
-//                        builder: (BuildContext context) => PostPage(document)),
-//                  );
+                  print("${document.documentID}");
+
+                  //お気に入りボタン押した投稿のdocumentIDと時間を保存する処理
+                  uploadFavolite(document);
+
+                  //ハートボタンが押されたことを伝えている。これがあることで更新できハートがすぐ赤くなる。
+                  setState(() {
+                    if (favorite != true) {
+                      favorite = true;
+                    } else {
+                      favorite = false;
+                    }
+                  });
                 },
               ),
-
               FlatButton(
                 child: const Icon(Icons.comment),
                 onPressed: () {
                   print("コメントボタンを押しました");
-
 
                   //コメントページに画面遷移
                   Navigator.push(
@@ -168,24 +174,60 @@ class _TimeLineState extends State<TimeLine> {
                         settings: const RouteSettings(name: "/comment"),
 
                         //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
-                        builder: (BuildContext context) => MessagePage(document)),
+                        builder: (BuildContext context) =>
+                            MessagePage(document)),
                   );
                 },
               )
             ],
           ),
         )
-
-
-
       ]),
-
     );
   }
 
+   uploadFavolite(document) {
+
+     savedDocumentIDSub(document);
+
+     favSaveCheck(document);
 
 
+  }
+
+   savedDocumentIDSub(document) {
+    Firestore.instance
+        .collection('users')
+        .document(firebaseUser.uid)
+        .collection("favolite")
+        .where("documentID", isEqualTo: document.documentID)
+        .snapshots()
+        .listen((data) =>
+        data.documents.forEach((doc) =>
+
+        //空の時nullに上書きされない
+        _savedDocumentID = doc["documentID"]));
+  }
+
+  favSaveCheck(document){
+    DocumentReference _favoliteReference;
+    _favoliteReference = Firestore.instance.collection('users').document(firebaseUser.uid).collection("favolite").document();
+
+    //処理を10秒遅らせている。遅らせないとsavedDocumentIDが更新される前にこちらの処理をしてしまう。
+    Future.delayed(new Duration(seconds: 10), (){
+      if (_savedDocumentID == document.documentID) {
+       return print('saveなし${_savedDocumentID}');
+      }else{
+        print('saveした${_savedDocumentID}');
+        _favoliteReference.setData({
+          "documentID": document.documentID,
+          "time": DateTime.now(),
+        });
+      }
+    });
+  }
 }
+
 
 //urlから画像を表示する処理
 class ImageUrl extends StatelessWidget {

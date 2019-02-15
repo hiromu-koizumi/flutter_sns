@@ -25,10 +25,6 @@ class _SettingPageState extends State<SettingPage> {
 
   final _UserData _data = _UserData();
 
-
-
-
-
   @override
   Widget build(BuildContext context) {
 
@@ -152,16 +148,4 @@ class _SettingPageState extends State<SettingPage> {
     });
 
   }
-
-
-
-
 }
-
-//DocumentReference _userReference;
-//_userReference = Firestore.instance.collection('users').document(firebaseUser.uid).collection("transaction").document();
-//
-////ユーザーネームをdatabaseに保存
-//_userReference.setData({
-//"name" : name
-//});
