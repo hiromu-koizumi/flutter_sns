@@ -20,6 +20,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.2
   cloud_firestore: ^0.7.3
+  scoped_model: ^1.0.1
 
   # firebase Authenticationを有効にする。ビルドエラーがおきるので修正が必要。app/build.gradleに2つの修正文を追加。
   firebase_auth: ^0.5.20

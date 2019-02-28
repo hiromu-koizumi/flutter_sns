@@ -1,7 +1,9 @@
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cos/favorite.dart';
 import 'package:flutter_cos/message_page.dart';
 import 'package:flutter_cos/login.dart';
 import 'package:flutter_cos/my_page.dart';
@@ -24,9 +26,58 @@ class MyApp extends StatelessWidget {
       routes: <String, WidgetBuilder>{
         //はじめは自動的に'/'の画面に遷移する
         '/': (_) => Splash(),
-        '/timeline': (_) => TimeLine(),
+        '/bottombar': (_) => BottomBar(),
       },
       // home: TimeLine(),
+    );
+  }
+}
+
+//下タブはStatefulWidgetじゃないと呼び出しができなかった
+class BottomBar extends StatefulWidget {
+  @override
+  _BottomBarState createState() => _BottomBarState();
+}
+
+//下タブ
+class _BottomBarState extends State<BottomBar> {
+  @override
+  build(BuildContext context) {
+    return CupertinoTabScaffold(
+      tabBar: CupertinoTabBar(
+        items: <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: new Icon(Icons.home),
+            //title: new Text('Home'),
+          ),
+          BottomNavigationBarItem(
+            icon: new Icon(Icons.account_circle),
+            //title: new Text('MyPage'),
+          )
+        ],
+      ),
+      tabBuilder: (BuildContext context, int index) {
+        assert(index >= 0 && index <= 1);
+        return CupertinoTabView(
+          builder: (BuildContext context) {
+            switch (index) {
+              case 0:
+                return CupertinoTabView(
+                  builder: (BuildContext context) => TimeLine(),
+                  //defaultTitle: 'Colors',
+                );
+                break;
+              case 1:
+                return CupertinoTabView(
+                  builder: (BuildContext context) => MyPage(),
+                  //defaultTitle: 'Support Chat',
+                );
+                break;
+            }
+            return null;
+          },
+        );
+      },
     );
   }
 }
@@ -36,91 +87,130 @@ class TimeLine extends StatefulWidget {
   _TimeLineState createState() => _TimeLineState();
 }
 
-class _TimeLineState extends State<TimeLine> {
+class _TimeLineState extends State<TimeLine>
 
-  var _savedDocumentID;
+    //上タブのために必要
+    with SingleTickerProviderStateMixin {
+  final List<Tab> tabs = <Tab>[
+    Tab(text: '新着'),
+    Tab(text: 'フォロー'),
+  ];
+  TabController _tabController;
+
+  //上タブのインスタンス作成
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(vsync: this, length: tabs.length);
+  }
+
 
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text("リスト画面"),
+        title: const Text(""),
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: tabs,
+        ),
         actions: <Widget>[
+//          IconButton(
+//            icon: Icon(Icons.exit_to_app),
+//            onPressed: () {
+//              print("login");
+//
+//              //ログイン画面表示
+//              showBasicDialog(context);
+//            },
+//          ),
           IconButton(
-            icon: Icon(Icons.exit_to_app),
-            onPressed: () {
-              print("login");
-
-              //ログイン画面表示
-              showBasicDialog(context);
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.account_circle),
+            icon: Icon(Icons.add_a_photo),
             onPressed: () {
               print("mypage");
               //画面遷移
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                    settings: const RouteSettings(name: "/myPage"),
-                    builder: (BuildContext context) => MyPage()),
+                    settings: const RouteSettings(name: "/new"),
+                    builder: (BuildContext context) =>
+                        PostPage(null) //null 編集機能付けるのに必要っぽい
+                    ),
               );
             },
-          )
+          ),
+
+//          IconButton(
+//            icon: Icon(Icons.account_circle),
+//            onPressed: () {
+//              print("mypage");
+//              //画面遷移
+//              Navigator.push(
+//                context,
+//                MaterialPageRoute(
+//                    settings: const RouteSettings(name: "/myPage"),
+//                    builder: (BuildContext context) => MyPage()),
+//              );
+//            },
+//          )
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: StreamBuilder<QuerySnapshot>(
 
-            //uidはユーザーの情報を取得する。firebaseUserにはログインしたユーザーが格納されている。だからここではログインしたユーザーの情報を取得している。
-            //stream: Firestore.instance.collection('users').document(firebaseUser.uid).collection("transaction").snapshots(),
-
-            //orderByで新しく投稿したものを上位に表示させている。投稿に保存されているtimeを見て判断している.
-            stream: Firestore.instance
-                .collection('posts')
-                .orderBy("time", descending: true)
-                .snapshots(),
-            builder:
-                (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-              if (!snapshot.hasData) return const Text('Loading...');
-              return ListView.builder(
-                //データをいくつ持ってくるかの処理
-                itemCount: snapshot.data.documents.length,
-                padding: const EdgeInsets.only(top: 10.0),
-
-
-                //投稿を表示する処理にデータを送っている
-                itemBuilder: (context, index) =>
-                    _buildListItem(context, snapshot.data.documents[index]),
-              );
-            }),
+      //上タブ表示させる処理
+      body: TabBarView(
+        controller: _tabController,
+        children: tabs.map((Tab tab) {
+          return createTab(tab);
+        }).toList(),
       ),
-      floatingActionButton: FloatingActionButton(
-          child: const Icon(Icons.add),
-          onPressed: () {
-            print("新規作成ボタンを押しました");
-
-            //画面遷移
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                  settings: const RouteSettings(name: "/new"),
-                  builder: (BuildContext context) =>
-                      PostPage(null) //null 編集機能付けるのに必要っぽい
-                  ),
-            );
-          }),
     );
   }
 
- bool favorite;
+  //上タブの表示処理
+  Widget createTab(Tab tab) {
+    switch (tab.text) {
+      case '新着':
+        return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: StreamBuilder<QuerySnapshot>(
+
+              //uidはユーザーの情報を取得する。firebaseUserにはログインしたユーザーが格納されている。だからここではログインしたユーザーの情報を取得している。
+              //stream: Firestore.instance.collection('users').document(firebaseUser.uid).collection("transaction").snapshots(),
+
+              //orderByで新しく投稿したものを上位に表示させている。投稿に保存されているtimeを見て判断している.
+              stream: Firestore.instance
+                  .collection('posts')
+                  .orderBy("time", descending: true)
+                  .snapshots(),
+              builder: (BuildContext context,
+                  AsyncSnapshot<QuerySnapshot> snapshot) {
+                if (!snapshot.hasData) return const Text('Loading...');
+                return ListView.builder(
+                  //データをいくつ持ってくるかの処理
+                  itemCount: snapshot.data.documents.length,
+                  padding: const EdgeInsets.only(top: 10.0),
+
+                  //投稿を表示する処理にデータを送っている
+                  itemBuilder: (context, index) =>
+                      _buildListItem(context, snapshot.data.documents[index]),
+                );
+              }),
+        );
+        break;
+      case 'フォロー':
+        return Text('aa');
+        break;
+    }
+  }
+
+  bool favorite;
+
   //投稿表示する処理
   Widget _buildListItem(BuildContext context, DocumentSnapshot document) {
-
-
-
+//    savedDocumentIDSuba(document,favorite);
+//   if (savedUserID == firebaseUser.uid) {
+//     favorite = true;
+//     print('aaaaa');
+//   }
 
     return Card(
       child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
@@ -136,21 +226,21 @@ class _TimeLineState extends State<TimeLine> {
         ),
         //編集ボタン
 
-    ButtonTheme.bar(
+        ButtonTheme.bar(
           child: ButtonBar(
             children: <Widget>[
               FlatButton(
                 child: Icon(
+                  //savedDocumentIDSuba(document,favorite)
                   favorite == true ? Icons.favorite : Icons.favorite_border,
                   color: favorite == true ? Colors.red : Colors.black38,
                 ),
                 onPressed: () {
-
                   print("いいねボタンを押しました");
                   print("${document.documentID}");
 
                   //お気に入りボタン押した投稿のdocumentIDと時間を保存する処理
-                  uploadFavolite(document);
+                  uploadFavorite(document);
 
                   //ハートボタンが押されたことを伝えている。これがあることで更新できハートがすぐ赤くなる。
                   setState(() {
@@ -185,49 +275,24 @@ class _TimeLineState extends State<TimeLine> {
       ]),
     );
   }
-
-   uploadFavolite(document) {
-
-     savedDocumentIDSub(document);
-
-     favSaveCheck(document);
-
-
-  }
-
-   savedDocumentIDSub(document) {
-    Firestore.instance
-        .collection('users')
-        .document(firebaseUser.uid)
-        .collection("favolite")
-        .where("documentID", isEqualTo: document.documentID)
-        .snapshots()
-        .listen((data) =>
-        data.documents.forEach((doc) =>
-
-        //空の時nullに上書きされない
-        _savedDocumentID = doc["documentID"]));
-  }
-
-  favSaveCheck(document){
-    DocumentReference _favoliteReference;
-    _favoliteReference = Firestore.instance.collection('users').document(firebaseUser.uid).collection("favolite").document();
-
-    //処理を10秒遅らせている。遅らせないとsavedDocumentIDが更新される前にこちらの処理をしてしまう。
-    Future.delayed(new Duration(seconds: 10), (){
-      if (_savedDocumentID == document.documentID) {
-       return print('saveなし${_savedDocumentID}');
-      }else{
-        print('saveした${_savedDocumentID}');
-        _favoliteReference.setData({
-          "documentID": document.documentID,
-          "time": DateTime.now(),
-        });
-      }
-    });
-  }
 }
-
+//class Favorite{
+//  final bool isFavorite;
+//  Favorite({
+//    this.isFavorite = false
+//  });
+//}
+//
+//class fav {
+//  final String documentId;
+//  fav(this.documentId);
+//  bool isFavorite;
+//  String id;
+//  List<Favorite> favlis = [];
+//  void fa(){
+//     favlis[]
+//  }
+//}
 
 //urlから画像を表示する処理
 class ImageUrl extends StatelessWidget {

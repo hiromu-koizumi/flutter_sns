@@ -39,7 +39,7 @@ void _getUser(BuildContext context) async {
     }
 
     //タイムラインに画面遷移
-    Navigator.pushReplacementNamed(context, "/timeline");
+    Navigator.pushReplacementNamed(context, "/bottombar");
   } catch (e) {
     //エラー時の処理
     Fluttertoast.showToast(msg: "Firebaseとの接続に失敗しました。");

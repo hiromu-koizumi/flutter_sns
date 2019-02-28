@@ -2,17 +2,18 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cos/main.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 import 'login.dart';
 
-
+//投稿作成、編集画面
 
 class PostPage extends StatefulWidget {
 
-  //編集機能のために追加
+  //編集機能のために追加。投稿情報をマイページから受け取っている
   PostPage(this.document);
   final DocumentSnapshot document;
 
@@ -63,7 +64,6 @@ class _PostPageState extends State<PostPage> {
 
       deleteFlg = true;
     }
-
 
     return Scaffold(
       appBar: AppBar(
@@ -143,15 +143,13 @@ class _PostPageState extends State<PostPage> {
                         //firebaseに写真とテキストを保存する処理._mainReferenceは投稿情報を渡している。これを渡さず関数側で投稿情報を作り編集投稿すると編集できず新規投稿をしてしまう。
                         uploadImageText(_mainReference);
 
-                        Navigator.pop(context);
+                       Navigator.pop(context);
                       }
-
-                      //画面遷移
-                      //Navigator.of(context).pushNamed("/timeline");
                     })
               ],
             ),
-          )),
+          )
+      ),
     );
 
   }
@@ -186,7 +184,7 @@ class _PostPageState extends State<PostPage> {
         context: context,
         builder: (BuildContext context) {
           return Container(
-            height: 150.0,
+            height: 200.0,
             padding: EdgeInsets.all(10.0),
             child: Column(children: [
               Text(
@@ -340,8 +338,5 @@ class _PostPageState extends State<PostPage> {
       "imagePath" : _data.imagePath,
       "userId" : firebaseUser.uid
     });
-
-    //return _data.url;
-
   }
 }
