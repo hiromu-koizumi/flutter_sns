@@ -1,8 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import 'login.dart';
 
+final FirebaseAuth _auth = FirebaseAuth.instance;
 class SettingPage extends StatefulWidget {
 
 //mypageから渡されたユーザー情報を受け取っている
@@ -29,29 +31,63 @@ class _SettingPageState extends State<SettingPage> {
   Widget build(BuildContext context) {
 
     DocumentReference _userReference;
-    _userReference = Firestore.instance.collection('users').document(firebaseUser.uid).collection("transaction").document();
-
-
+    _userReference = Firestore.instance.collection('users').document(firebaseUser.uid).collection("profiles").document();
 
     if (widget.userInformation != null) {
       if (_data.userName == null && _data.profile == null) {
         _data.userName = widget.userInformation['userName'];
         _data.profile = widget.userInformation['profile'];
         print('${_data.userName}');
-
       }
 
       //編集ボタン押したときのデータベースの参照先
-      _userReference = Firestore.instance.collection('users').document(firebaseUser.uid).collection("transaction").document(widget.userInformation.documentID);
-
-//      deleteFlg = true;
+      _userReference = Firestore.instance.collection('users').document(firebaseUser.uid).collection("profiles").document(widget.userInformation.documentID);
     }
 
 
 
     return Scaffold(
         appBar: AppBar(
-          title: Text('設定'),
+          title: Text('設定'),actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.directions_run),
+            onPressed: () {
+
+              logoutDialog(context);
+
+//              showDialog(
+//                context: context,
+//                builder: (BuildContext) => AlertDialog(
+//                  title: const Text('確認ダイアログ'),
+//                  content: Text(firebaseUser.email + "でログインしています"),
+//                  actions: <Widget>[
+//                    FlatButton(
+//                      child: const Text('キャンセル'),
+//                      onPressed: () {
+//                        Navigator.pop(context);
+//                      },
+//                    ),
+//                    FlatButton(
+//                        child: const Text('ログアウト'),
+//                        onPressed: () {
+//                          _auth.signOut();
+//                          Navigator.pushNamedAndRemoveUntil(
+//                              context, "/", (_) => false);
+//                        }),
+//                  ],
+//                ),
+//              );
+              //画面遷移
+//              Navigator.push(
+//                context,
+//                MaterialPageRoute(
+//                    settings: const RouteSettings(name: "/setting"),
+//                    builder: (BuildContext context) =>
+//                        SettingPage(userInformation) //null 編集機能付けるのに必要っぽい
+//                ),
+//              );
+            },
+          ),]
         ),
         body: SafeArea(
             child: Form(
@@ -132,6 +168,31 @@ class _SettingPageState extends State<SettingPage> {
 
                   )
             ]))));
+  }
+
+  void logoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        title: const Text('確認ダイアログ'),
+        content: Text(firebaseUser.email + "でログインしています"),
+        actions: <Widget>[
+          FlatButton(
+            child: const Text('キャンセル'),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+          FlatButton(
+              child: const Text('ログアウト'),
+              onPressed: () {
+                _auth.signOut();
+                Navigator.pushNamedAndRemoveUntil(
+                    context, "/", (_) => false);
+              }),
+        ],
+      ),
+    );
   }
 
   Future<String> uploadText(_userReference) async{

@@ -69,7 +69,7 @@ class _MessagePageState extends State<MessagePage> {
               ),
               new Divider(height: 1.0),
               Container(
-                margin: EdgeInsets.only(bottom: 20.0, right: 10.0, left: 10.0),
+                margin: EdgeInsets.only(bottom: 50.0, right: 10.0, left: 10.0),
                 child: Row(
                   children: <Widget>[
                     new Flexible(

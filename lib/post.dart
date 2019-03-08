@@ -42,12 +42,14 @@ class _PostPageState extends State<PostPage> {
   @override
   Widget build(BuildContext context) {
 
+    //一つにまとめられると思う。新着に投稿を乗せるため保存先を2つにしてある
     //新規投稿時のデータベース保存先作成
-    DocumentReference _mainReference;
+    DocumentReference _allPostsReference;
+    DocumentReference _userPostsReference;
+    _allPostsReference = Firestore.instance.collection('posts').document();
+    _userPostsReference = Firestore.instance.collection('users').document(firebaseUser.uid).collection("posts").document();
 
 
-    //_mainReference = Firestore.instance.collection('users').document(firebaseUser.uid).collection("transaction").document();
-    _mainReference = Firestore.instance.collection('posts').document();
     //削除機能のため
     bool deleteFlg = false;
 
@@ -60,7 +62,8 @@ class _PostPageState extends State<PostPage> {
       }
 
       //編集ボタン押したときのデータベースの参照先
-      _mainReference = Firestore.instance.collection('posts').document(widget.document.documentID);
+      _allPostsReference = Firestore.instance.collection('posts').document(widget.document.documentID);
+      _userPostsReference = Firestore.instance.collection('users').document(firebaseUser.uid).collection("posts").document(widget.document.documentID);
 
       deleteFlg = true;
     }
@@ -87,7 +90,8 @@ class _PostPageState extends State<PostPage> {
               firebaseStorageRef.delete();
 
               //firebaseDatabaseからデータを削除
-              _mainReference.delete();
+              _allPostsReference.delete();
+              _userPostsReference.delete();
               Navigator.pop(context);
             },
           )
@@ -99,7 +103,7 @@ class _PostPageState extends State<PostPage> {
             //グローバルキー。紐づけするためにある。
             key: _formKey,
             child: ListView(
-              padding: const EdgeInsets.all(20.0),
+              padding: const EdgeInsets.only(top: 20.0, left: 20.0, right: 20.0, bottom: 50),
               children: <Widget>[
                 //image.dartファイルのクラス
                 addimageButton(),
@@ -141,7 +145,7 @@ class _PostPageState extends State<PostPage> {
                         _formKey.currentState.save();
 
                         //firebaseに写真とテキストを保存する処理._mainReferenceは投稿情報を渡している。これを渡さず関数側で投稿情報を作り編集投稿すると編集できず新規投稿をしてしまう。
-                        uploadImageText(_mainReference);
+                        uploadImageText(_allPostsReference,_userPostsReference);
 
                        Navigator.pop(context);
                       }
@@ -291,7 +295,7 @@ class _PostPageState extends State<PostPage> {
     }
   }
 
-  Future<String> uploadImageText(_mainReference) async{
+  Future<String> uploadImageText(_allPostsReference,_userPostsReference) async{
 
     //保存する写真の名前を変更するためにUUIDを生成している
     final String uuid = Uuid().v1();
@@ -331,7 +335,14 @@ class _PostPageState extends State<PostPage> {
     }
 
     //firebaseDatebaseに保存している
-    _mainReference.setData({
+    _allPostsReference.setData({
+      "url": _data.url,
+      "comment": _data.comment,
+      "time": _data.date,
+      "imagePath" : _data.imagePath,
+      "userId" : firebaseUser.uid
+    });
+    _userPostsReference.setData({
       "url": _data.url,
       "comment": _data.comment,
       "time": _data.date,
