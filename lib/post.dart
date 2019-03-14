@@ -30,6 +30,7 @@ class _FormData {
 
   String url;
 
+  //写真を削除するときにurlとは別にimagePathが必要だと思う
   String imagePath;
 }
 
@@ -46,8 +47,8 @@ class _PostPageState extends State<PostPage> {
     //新規投稿時のデータベース保存先作成
     DocumentReference _allPostsReference;
     DocumentReference _userPostsReference;
-    _allPostsReference = Firestore.instance.collection('posts').document();
-    _userPostsReference = Firestore.instance.collection('users').document(firebaseUser.uid).collection("posts").document();
+//    _allPostsReference = Firestore.instance.collection('posts').document();
+//    _userPostsReference = Firestore.instance.collection('users').document(firebaseUser.uid).collection("posts").document();
 
 
     //削除機能のため
@@ -62,8 +63,11 @@ class _PostPageState extends State<PostPage> {
       }
 
       //編集ボタン押したときのデータベースの参照先
-      _allPostsReference = Firestore.instance.collection('posts').document(widget.document.documentID);
-      _userPostsReference = Firestore.instance.collection('users').document(firebaseUser.uid).collection("posts").document(widget.document.documentID);
+//      _allPostsReference = Firestore.instance.collection('posts').document(widget.document.documentID);
+//      _userPostsReference = Firestore.instance.collection('users').document(firebaseUser.uid).collection("posts").document(widget.document.documentID);
+      _allPostsReference = Firestore.instance.collection('posts').document(_data.imagePath);
+      _userPostsReference = Firestore.instance.collection('users').document(firebaseUser.uid).collection("posts").document(_data.imagePath);
+
 
       deleteFlg = true;
     }
@@ -88,6 +92,8 @@ class _PostPageState extends State<PostPage> {
               final StorageReference firebaseStorageRef =
               FirebaseStorage.instance.ref().child('image').child('${_data.imagePath}');
               firebaseStorageRef.delete();
+
+              myFollowersDelete();
 
               //firebaseDatabaseからデータを削除
               _allPostsReference.delete();
@@ -295,6 +301,7 @@ class _PostPageState extends State<PostPage> {
     }
   }
 
+
   Future<String> uploadImageText(_allPostsReference,_userPostsReference) async{
 
     //保存する写真の名前を変更するためにUUIDを生成している
@@ -331,8 +338,15 @@ class _PostPageState extends State<PostPage> {
       //urlに写真のURLを格納
       _data.url = downUrl.toString();
 
+      //保存するdcumentIDを全DBで統一するためにdocument(_data.imagePath)にimagePathを使用している。
+      _allPostsReference = Firestore.instance.collection('posts').document(_data.imagePath);
+      _userPostsReference = Firestore.instance.collection('users').document(firebaseUser.uid).collection("posts").document(_data.imagePath);
+
       print("download url : $_data.url");
     }
+
+    //フォロワーのDBに投稿を保存している
+    myFollowersSave();
 
     //firebaseDatebaseに保存している
     _allPostsReference.setData({
@@ -350,4 +364,84 @@ class _PostPageState extends State<PostPage> {
       "userId" : firebaseUser.uid
     });
   }
+
+
+  myFollowersSave(){
+    var _myFollowersId = [];
+
+    Firestore.instance
+        .collection('users')
+        .document(firebaseUser.uid)
+        .collection("followers")
+        .snapshots()
+        .listen((data) =>
+        data.documents.forEach((doc) =>
+
+        //空の時nullに上書きされない
+        _myFollowersId.add(doc["userId"])));
+
+    //一秒遅く処理を開始しないと_myFollowersIdに値が代入されない。もっと良いコードあるはず
+    Future.delayed(new Duration(seconds: 1), () {
+      print("フォロワーリスト$_myFollowersId");
+      print(_myFollowersId.length);
+      int id = 0;
+      DocumentReference _followerReference;
+
+      //フォロワーの数と同じだけ処理をくりかえしている。
+      while(_myFollowersId.length - 1 >= id){
+
+        _followerReference =
+            Firestore.instance.collection('users').document(_myFollowersId[id])
+                .collection("followingPosts")
+                .document(_data.imagePath);
+
+        _followerReference.setData({
+          "url": _data.url,
+          "comment": _data.comment,
+          "time": _data.date,
+          "imagePath" : _data.imagePath,
+          "userId" : firebaseUser.uid
+        });
+        id = id+1;
+
+      }
+    });
+  }
+  myFollowersDelete(){
+    var _myFollowersId = [];
+
+    Firestore.instance
+        .collection('users')
+        .document(firebaseUser.uid)
+        .collection("followers")
+        .snapshots()
+        .listen((data) =>
+        data.documents.forEach((doc) =>
+
+        //空の時nullに上書きされない
+        _myFollowersId.add(doc["userId"])));
+
+    //一秒遅く処理を開始しないと_myFollowersIdに値が代入されない。もっと良いコードあるはず
+    Future.delayed(new Duration(seconds: 1), () {
+      print("フォロワーリスト$_myFollowersId");
+      print(_myFollowersId.length);
+      int id = 0;
+      DocumentReference _followerReference;
+
+      //フォロワーの数と同じだけ処理をくりかえしている。
+      while(_myFollowersId.length - 1 >= id){
+
+        _followerReference =
+            Firestore.instance.collection('users').document(_myFollowersId[id])
+                .collection("followingPosts")
+                .document(_data.imagePath);
+
+        _followerReference.delete();
+        id = id+1;
+
+      }
+    });
+  }
+
+
 }

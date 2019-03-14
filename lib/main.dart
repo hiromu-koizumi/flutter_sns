@@ -3,8 +3,6 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cos/favorite.dart';
-import 'package:flutter_cos/message_page.dart';
 import 'package:flutter_cos/login.dart';
 import 'package:flutter_cos/my_page.dart';
 import 'package:flutter_cos/post.dart';
@@ -71,7 +69,7 @@ class _BottomBarState extends State<BottomBar> {
                 break;
               case 1:
                 return CupertinoTabView(
-                  builder: (BuildContext context) => MyPage(),
+                  builder: (BuildContext context) => MyPages(),
                   //defaultTitle: 'Support Chat',
                 );
                 break;
@@ -229,21 +227,14 @@ class _TimeLineState extends State<TimeLine>
 
             //orderByで新しく投稿したものを上位に表示させている。投稿に保存されているtimeを見て判断している.
               stream: Firestore.instance
-                  .collection('posts')
+                  .collection('users')
+                  .document(firebaseUser.uid)
+                  .collection("followingPosts")
                   .orderBy("time", descending: true)
                   .snapshots(),
               builder: (BuildContext context,
                   AsyncSnapshot<QuerySnapshot> snapshot) {
                 if (!snapshot.hasData) return const Text('Loading...');
-//                return ListView.builder(
-//                  //データをいくつ持ってくるかの処理
-//                  itemCount: snapshot.data.documents.length,
-//                  padding: const EdgeInsets.only(top: 10.0),
-//
-//                  //投稿を表示する処理にデータを送っている
-//                  itemBuilder: (context, index) =>
-//                      _buildListItem(context, snapshot.data.documents[index]),
-//                );
 
                 return CustomScrollView(
                   slivers: <Widget>[
@@ -272,42 +263,9 @@ class _TimeLineState extends State<TimeLine>
 
   //投稿表示する処理
   Widget _buildListItem(BuildContext context, DocumentSnapshot document) {
-//    savedDocumentIDSuba(document,favorite);
-//   if (savedUserID == firebaseUser.uid) {
-//     favorite = true;
-//     print('aaaaa');
-//   }
-
-
-
-
-
-    //Card(
-//    color: const Color(0x00000000),
-//    elevation: 3.0,
-//    child: new GestureDetector(
-//      onTap: () {
-//        print("hello");
-//      },
-//      child: new Container(
-//          decoration: new BoxDecoration(
-//            image: new DecorationImage(
-//              image: new NetworkImage(document['url']),
-//              fit: BoxFit.cover,
-//            ),
-//            borderRadius: new BorderRadius.all(const Radius.circular(10.0)),
-//          )
-//      ),
-//    ),
-//  );
-
-
-
-
 
     return InkWell(
         onTap : (){
-          print('aaadd');
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -319,156 +277,12 @@ class _TimeLineState extends State<TimeLine>
           );
         },
         child: Card(
-
-          child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
-            //写真表示
-            ImageUrl(imageUrl: document['url']),
-
-//            ListTile(
-//              leading: const Icon(Icons.android),
-//              title: Text(document['comment']),
-//
-//              //substringで表示する時刻を短縮している
-//              subtitle: Text(document['time'].toString().substring(0, 10)),
-//            ),
-            //編集ボタン
-
-//            ButtonTheme.bar(
-//              child: ButtonBar(
-//                children: <Widget>[
-//                  FlatButton(
-//                    child: Icon(
-//                      //savedDocumentIDSuba(document,favorite)
-//                      favorite == true ? Icons.favorite : Icons.favorite_border,
-//                      color: favorite == true ? Colors.red : Colors.black38,
-//                    ),
-//                    onPressed: () {
-//                      print("いいねボタンを押しました");
-//                      print("${document.documentID}");
-//
-//                      //お気に入りボタン押した投稿のdocumentIDと時間を保存する処理
-//                      uploadFavorite(document);
-//
-//                      //ハートボタンが押されたことを伝えている。これがあることで更新できハートがすぐ赤くなる。
-//                      setState(() {
-//                        if (favorite != true) {
-//                          favorite = true;
-//                        } else {
-//                          favorite = false;
-//                        }
-//                      });
-//                    },
-//                  ),
-//                  FlatButton(
-//                    child: const Icon(Icons.comment),
-//                    onPressed: () {
-//                      print("コメントボタンを押しました");
-//
-//                      //コメントページに画面遷移
-//                      Navigator.push(
-//                        context,
-//                        MaterialPageRoute(
-//                            settings: const RouteSettings(name: "/comment"),
-//
-//                            //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
-//                            builder: (BuildContext context) =>
-//                                MessagePage(document)),
-//                      );
-//                    },
-//                  )
-//                ],
-//              ),
-//            )
-          ]),
+           //写真表示
+           child: ImageUrl(imageUrl: document['url']),
         )
     );
-
-
-
-
-
-
-//      Card(
-//      child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
-//        //写真表示
-//        ImageUrl(imageUrl: document['url']),
-//
-//        ListTile(
-//          leading: const Icon(Icons.android),
-//          title: Text(document['comment']),
-//
-//          //substringで表示する時刻を短縮している
-//          subtitle: Text(document['time'].toString().substring(0, 10)),
-//        ),
-//        //編集ボタン
-//
-//        ButtonTheme.bar(
-//          child: ButtonBar(
-//            children: <Widget>[
-//              FlatButton(
-//                child: Icon(
-//                  //savedDocumentIDSuba(document,favorite)
-//                  favorite == true ? Icons.favorite : Icons.favorite_border,
-//                  color: favorite == true ? Colors.red : Colors.black38,
-//                ),
-//                onPressed: () {
-//                  print("いいねボタンを押しました");
-//                  print("${document.documentID}");
-//
-//                  //お気に入りボタン押した投稿のdocumentIDと時間を保存する処理
-//                  uploadFavorite(document);
-//
-//                  //ハートボタンが押されたことを伝えている。これがあることで更新できハートがすぐ赤くなる。
-//                  setState(() {
-//                    if (favorite != true) {
-//                      favorite = true;
-//                    } else {
-//                      favorite = false;
-//                    }
-//                  });
-//                },
-//              ),
-//              FlatButton(
-//                child: const Icon(Icons.comment),
-//                onPressed: () {
-//                  print("コメントボタンを押しました");
-//
-//                  //コメントページに画面遷移
-//                  Navigator.push(
-//                    context,
-//                    MaterialPageRoute(
-//                        settings: const RouteSettings(name: "/comment"),
-//
-//                        //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
-//                        builder: (BuildContext context) =>
-//                            MessagePage(document)),
-//                  );
-//                },
-//              )
-//            ],
-//          ),
-//        )
-//      ]),
-//    );
   }
 }
-//class Favorite{
-//  final bool isFavorite;
-//  Favorite({
-//    this.isFavorite = false
-//  });
-//}
-//
-//class fav {
-//  final String documentId;
-//  fav(this.documentId);
-//  bool isFavorite;
-//  String id;
-//  List<Favorite> favlis = [];
-//  void fa(){
-//     favlis[]
-//  }
-//}
 
 //urlから画像を表示する処理
 class ImageUrl extends StatelessWidget {

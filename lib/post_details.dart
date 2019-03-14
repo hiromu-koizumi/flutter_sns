@@ -56,7 +56,6 @@ class _PostDetailsState extends State<PostDetails>{
       child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
 
         ListTile(
-          leading: const Icon(Icons.android),
           title: userName(),
           onTap: (){
             Navigator.push(
@@ -64,7 +63,7 @@ class _PostDetailsState extends State<PostDetails>{
               MaterialPageRoute(
                   settings: const RouteSettings(name: "/userPage"),
                   builder: (BuildContext context) =>
-                      UserPage(widget.document)
+                      UserPage(widget.document['userId'])
               ),
             );
           },
@@ -118,7 +117,7 @@ class _PostDetailsState extends State<PostDetails>{
               .collection('users')
               .document(firebaseUser.uid)
               .collection("favorite")
-              .where("documentID", isEqualTo: widget.document.documentID)
+              .where("documentId", isEqualTo: widget.document.documentID)
               .snapshots(),
           builder:
               (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
@@ -165,14 +164,29 @@ class _PostDetailsState extends State<PostDetails>{
           if (!snapshot.hasData) return const Text('Loading...');
           userInformation = snapshot.data.documents[0];
 
-          if (snapshot.data.documents[0]['profile'] != null) {
-            return Column(children: <Widget>[
-              Text(snapshot.data.documents[0]['userName']),
-              //Text(snapshot.data.documents[0]['profile']),
-            ]);
-          }else{
-            return Text(snapshot.data.documents[0]['userName']);
-          }
+
+            return Row(
+              children: <Widget>[
+                Container(
+                    width: 40.0,
+                    height: 40.0,
+                    decoration: new BoxDecoration(
+                        shape: BoxShape.circle,
+                        image: new DecorationImage(
+                            fit: BoxFit.fill,
+                            image: new NetworkImage(
+                                snapshot.data.documents[0]['photoUrl'])))),
+                SizedBox(
+                  width: 20.0,
+
+                ),
+
+                Text(snapshot.data.documents[0]['userName']),
+
+              ],
+            );
+             // Text(snapshot.data.documents[0]['userName']);
+
         }
     );
   }

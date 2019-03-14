@@ -10,7 +10,7 @@ description: A new Flutter application.
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.0.0-dev.68.0 <3.0.0"
+  sdk: ">=2.1.0 <3.0.0"
 
 dependencies:
   flutter:
@@ -27,6 +27,9 @@ dependencies:
 
   # ログインできなかった時にトーストを表示
   fluttertoast: ^2.0.7
+
+  #loginblocに必要だった
+  rxdart: ^0.20.0
 
   http: "^0.11.3+16"
   uuid: ^1.0.3

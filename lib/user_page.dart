@@ -3,8 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cos/login.dart';
 import 'package:flutter_cos/main.dart';
-import 'package:flutter_cos/post.dart';
-import 'package:flutter_cos/setting.dart';
+import 'package:flutter_cos/user_follow_page.dart';
 import 'dart:math' as math;
 
 //格子状に表示する
@@ -16,19 +15,12 @@ DocumentSnapshot userInformation;
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
 class UserPage extends StatelessWidget{
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  String email, password, name ;
-
-  UserPage(this.document);
-  final DocumentSnapshot document;
+  UserPage(this.userId);
+  final userId;
 
 
   @override
   Widget build(BuildContext context) {
-//    DocumentReference _userReference;
-//    _userReference = Firestore.instance.collection('users').document(firebaseUser.uid).collection("transaction").document();
-
-
       return MaterialApp(
         home: Scaffold(
             appBar: AppBar(title: Text('ユーザー'), leading:
@@ -41,18 +33,18 @@ class UserPage extends StatelessWidget{
                   }),
 
             ),
-            body: UserPages(document)),
+            body: UserPages(userId)),
       );
     }}
 
 
 class UserPages extends StatefulWidget {
-  UserPages(this.document);
-  final DocumentSnapshot document;
+  UserPages(this.userId);
+  final userId;
 
   //documentにはログインしているユーザーではなくてこのページのユーザーの情報が入っている
   @override
-  _UserPageState createState() => _UserPageState();
+  _UserPageState createState() => _UserPageState(userId);
 }
 
 //名前を表示するためにつけた
@@ -89,6 +81,8 @@ class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
 
 
 class _UserPageState extends State<UserPages> {
+  _UserPageState(this.userId);
+  final userId;
 //class CollapsingList extends StatelessWidget {
   SliverPersistentHeader makeHeader(_myFollowReference,_othersFollowReference) {
     return SliverPersistentHeader(
@@ -100,53 +94,83 @@ class _UserPageState extends State<UserPages> {
         maxHeight: 150.0,
         child: Container(
           margin: EdgeInsets.all(16.0),
-            //color: Colors.white, child: Center(child: userName())
-          child: Row(
-            children: <Widget>[
-              Icon(
-                Icons.android
-              ),
-              Expanded(
-                child: Column(
-                  //crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
+      //color: Colors.white, child: Center(child: userName())
+      child: Row(
+        children: <Widget>[
+          InkWell(
+            onTap: () {
+              print('photoChange');
+            },
+            // child: Expanded(
+            child: userProfile()
+          ),
+          Expanded(
+            child: Column(
+              //crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
 
-                  children: <Widget>[
-                    Container(
-                      margin: const EdgeInsets.only(bottom: 4.0),
-                      child: userName()
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.only(left:50, right: 50),
+                  child: Column(children: <Widget>[
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        InkWell(
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    settings:
+                                    const RouteSettings(name: "/FollowPage"),
+
+                                    //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
+                                    builder: (BuildContext context) =>
+                                        UserFollowPage(widget.userId)));
+                          },
+                          child: Column(
+//                              crossAxisAlignment: CrossAxisAlignment.start,
+//                              mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Text('フォロー'),
+                              _followingNumber()
+                            ],
+                          ),
+                        ),
+                        InkWell(
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    settings:
+                                    const RouteSettings(name: "/FollowPage"),
+
+                                    //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
+                                    builder: (BuildContext context) =>
+                                        UserFollowPage(widget.userId)));
+                          },
+                          child: Column(
+                            children: <Widget>[
+                              Text('フォロワー'),
+                              _followersNumber()
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                     followButton(_myFollowReference,_othersFollowReference)
-                  ],
+                  ])
                 ),
-              )
-            ],
+              ],
+            ),
           ),
-        ),
+        ],
+      ),
+    ),
       ),
     );
   }
 
-
-
-//   userNameSave(_followReference) async {
-//        Firestore.instance
-//            .collection('users')
-//            .document(widget.document['userId'])
-//            .collection("profiles")
-//            .snapshots()
-//            .listen((data) =>
-//            data.documents.forEach((doc) => addUserName = (doc["userName"])));
-//
-//        //処理を遅らせないと変数に名前保存する前にfirebaseに保存の処理を行ってしまう。ホントはawait使えばできると思う。でもうまくできないから処理を遅らして対処している
-//        Future.delayed(new Duration(seconds: 1), () {
-//          //ホントはuserId保存しなくてもいいはず。でもドキュメントネームをwhere("userId", isEqualTo: firebaseUser.uid)で取り出す方法がわからないからこうしている
-//            _followReference.setData({
-//              "userName": addUserName,
-//              "userId": widget.document['userId']
-//            });
-//        });
-//  }
   //widget.documentにはこのページのユーザーの情報が格納されている.
   //_followReferenceは自分のDBの保存先
   //フォローとフォロー解除の処理をif文で書いている。firebaseのfollowに保存されていればdeleteの処理。なければ保存の処理。
@@ -160,7 +184,7 @@ class _UserPageState extends State<UserPages> {
             .collection('users')
             .document(firebaseUser.uid)
             .collection("following")
-            .where("userId", isEqualTo: widget.document['userId'])
+            .where("userId", isEqualTo: widget.userId)
             .snapshots()
             .listen((data) =>
             data.documents.forEach((doc) => checkFollow = (doc["userName"])));
@@ -177,7 +201,7 @@ class _UserPageState extends State<UserPages> {
             //followされた人の名前をisFollowedNameに代入している
             Firestore.instance
                 .collection('users')
-                .document(widget.document['userId'])
+                .document(userId)
                 .collection("profiles")
                 .snapshots()
                 .listen((data) =>
@@ -198,7 +222,7 @@ class _UserPageState extends State<UserPages> {
               //ログインユーザーのDBにこのページのユーザー情報を保存。
               _myFollowReference.setData({
                 "userName": isFollowedName,
-                "userId": widget.document['userId'],
+                "userId": widget.userId,
                 "time": DateTime.now()
               });
 
@@ -217,9 +241,6 @@ class _UserPageState extends State<UserPages> {
 
 
           }
-//          _followReference.setData({
-//            "userName": ('$addUserName'),
-//          });
         });
   }
 
@@ -233,7 +254,7 @@ class _UserPageState extends State<UserPages> {
               .collection('users')
               .document(firebaseUser.uid)
               .collection("following")
-              .where("userId", isEqualTo: widget.document['userId'])
+              .where("userId", isEqualTo: widget.userId)
               .snapshots(),
           builder: (BuildContext context,
               AsyncSnapshot<QuerySnapshot> snapshot) {
@@ -259,17 +280,17 @@ class _UserPageState extends State<UserPages> {
 
 
     DocumentReference _myFollowReference;
-    _myFollowReference = Firestore.instance.collection('users').document(firebaseUser.uid).collection("following").document(widget.document['userId']);
+    _myFollowReference = Firestore.instance.collection('users').document(firebaseUser.uid).collection("following").document(userId);
 
     DocumentReference _othersFollowReference;
-    _othersFollowReference = Firestore.instance.collection('users').document(widget.document['userId']).collection("followers").document(firebaseUser.uid);
+    _othersFollowReference = Firestore.instance.collection('users').document(widget.userId).collection("followers").document(firebaseUser.uid);
 
 
 
     return StreamBuilder<QuerySnapshot>(
         stream: Firestore.instance
             .collection('users')
-            .document(widget.document['userId'])
+            .document(widget.userId)
             .collection('posts')
             .orderBy("time", descending: true)
         //.where("userId", isEqualTo: firebaseUser.uid)
@@ -314,123 +335,95 @@ class _UserPageState extends State<UserPages> {
                 //substringで表示する時刻を短縮している
                 subtitle: Text(document['time'].toString().substring(0, 10))),
 
-            //編集ボタン
-            ButtonTheme.bar(
-              child: ButtonBar(
-                children: <Widget>[
-                  FlatButton(
-                    child: const Text('編集'),
-                    onPressed: () {
-                      print("編集ボタンを押しました");
-                      //編集処理,画面遷移
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            settings: const RouteSettings(name: "/edit"),
-
-                            //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
-                            builder: (BuildContext context) => PostPage(document)),
-                      );
-                    },
-                  )
-                ],
-              ),
-            )
           ]),
         ));
   }
 
-  Widget userName() {
+//  Widget userName() {
+//    return StreamBuilder<QuerySnapshot>(
+//        stream: Firestore.instance
+//            .collection('users')
+//            .document(widget.userId)
+//            .collection("profiles")
+//            .snapshots(),
+//
+//        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+//          if (!snapshot.hasData) return const Text('Loading...');
+//          userInformation = snapshot.data.documents[0];
+//
+//          if (snapshot.data.documents[0]['profile'] != null) {
+//            return Column(children: <Widget>[
+//              Text(snapshot.data.documents[0]['userName']),
+//              Text(snapshot.data.documents[0]['profile']),
+//            ]);
+//          }else{
+//            return Text(snapshot.data.documents[0]['userName']);
+//          }
+//        }
+//    );
+//  }
+
+
+
+  Widget userProfile() {
     return StreamBuilder<QuerySnapshot>(
         stream: Firestore.instance
             .collection('users')
-            .document(widget.document['userId'])
+            .document(widget.userId)
             .collection("profiles")
             .snapshots(),
-
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (!snapshot.hasData) return const Text('Loading...');
+          if (snapshot.data.documents.length == 0) return Text('NONAME');
           userInformation = snapshot.data.documents[0];
 
-          if (snapshot.data.documents[0]['profile'] != null) {
-            return Column(children: <Widget>[
-              Text(snapshot.data.documents[0]['userName']),
-              Text(snapshot.data.documents[0]['profile']),
-            ]);
-          }else{
-            return Text(snapshot.data.documents[0]['userName']);
-          }
-        }
-    );
+            return Column(
+              children: <Widget>[
+                Container(
+                    width: 80.0,
+                    height: 80.0,
+                    decoration: new BoxDecoration(
+                        shape: BoxShape.circle,
+                        image: new DecorationImage(
+                            fit: BoxFit.fill,
+                            image: new NetworkImage(
+                                snapshot.data.documents[0]['photoUrl'])))),
+
+                Text(snapshot.data.documents[0]['userName']),
+              ],
+            );
+
+        });
   }
+
+
+  Widget _followingNumber() {
+  return StreamBuilder<QuerySnapshot>(
+  stream: Firestore.instance
+      .collection('users')
+      .document(widget.userId)
+      .collection("following")
+      .snapshots(),
+  builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+  if (!snapshot.hasData) return const Text('Loading...');
+  //userInformation = snapshot.data.documents[0];
+
+  return Text('${snapshot.data.documents.length}');
+  });
 }
 
+Widget _followersNumber() {
+  return StreamBuilder<QuerySnapshot>(
+      stream: Firestore.instance
+          .collection('users')
+          .document(widget.userId)
+          .collection("followers")
+          .snapshots(),
+      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+        if (!snapshot.hasData) return const Text('Loading...');
+        //userInformation = snapshot.data.documents[0];
 
-//メールアドレスとパスワードでログインする処理
-void _signIn(BuildContext context, String email, String password) async {
-  try {
-    //ログインしている
-    await _auth.signInWithEmailAndPassword(email: email, password: password);
-
-    Navigator.pushNamedAndRemoveUntil(context, "/", (_) => false);
-  } catch (e) {
-    Fluttertoast.showToast(msg: "Firebaseのログインに失敗しました");
-  }
+        return Text('${snapshot.data.documents.length}');
+      });
 }
-
-//メールアドレスとパスワードで新規ユーザー作成
-//void _createUser(BuildContext context, String email, String password,String name) async {
-//
-//
-//  try {
-//    //Authenticationにユーザーを作成している
-//    await _auth.createUserWithEmailAndPassword(
-//        email: email, password: password);
-//
-//    firebaseUser = await _auth.currentUser();
-//
-//    DocumentReference _userReference;
-//    _userReference = Firestore.instance.collection('users').document(firebaseUser.uid).collection("transaction").document();
-//
-//
-//    await _userReference.setData({
-//      "userName": name
-//    });
-//
-//
-//    Navigator.push(context,
-//        MaterialPageRoute(
-//            settings: const RouteSettings(name: "/MyPage"),
-//
-//            //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
-//            builder: (BuildContext context) =>
-//                MyPage()));
-//    //Navigator.pushNamedAndRemoveUntil(context, "/MyPage", (_) => false);
-//  } catch (e) {
-//    await _auth.createUserWithEmailAndPassword(
-//        email: email, password: password);
-//
-//    firebaseUser = await _auth.currentUser();
-//
-//    DocumentReference _userReference;
-//    _userReference = Firestore.instance.collection('users').document(firebaseUser.uid).collection("transaction").document();
-//
-//    await _userReference.setData({
-//      "userName": name
-//    });
-//
-//
-//    Navigator.push(context,
-//        MaterialPageRoute(
-//            settings: const RouteSettings(name: "/MyPage"),
-//
-//            //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
-//            builder: (BuildContext context) =>
-//                MyPage()));
-//    Fluttertoast.showToast(msg: "Firebaseの登録に失敗しました");
-//    //Navigator.pushNamedAndRemoveUntil(context, "/", (_) => false);
-//
-//  }
-//}
-//
-//
+}
