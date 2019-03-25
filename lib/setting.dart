@@ -9,11 +9,12 @@ import 'package:uuid/uuid.dart';
 import 'login.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
-class SettingPage extends StatefulWidget {
 
+class SettingPage extends StatefulWidget {
 //mypageから渡されたユーザー情報を受け取っている
   SettingPage(this.userInformation);
-   final DocumentSnapshot userInformation;
+
+  final DocumentSnapshot userInformation;
 
   @override
   _SettingPageState createState() => _SettingPageState();
@@ -23,47 +24,62 @@ class _UserData {
   String userName;
   String profile;
   String url;
+
   //写真を削除するときにurlとは別にimagePathが必要だと思う
   String imagePath;
+
+  String searchKey;
+  String userId;
+  //String makeUserID;
 }
 
 class _SettingPageState extends State<SettingPage> {
-
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   final _UserData _data = _UserData();
 
   @override
   Widget build(BuildContext context) {
-
     DocumentReference _userReference;
-    _userReference = Firestore.instance.collection('users').document(firebaseUser.uid).collection("profiles").document();
+//    _userReference = Firestore.instance
+//        .collection('users')
+//        .document(firebaseUser.uid)
+//        .collection("profiles")
+//        .document();
 
-    if (widget.userInformation != null) {
-      if (_data.userName == null && _data.profile == null) {
+    _userReference = Firestore.instance
+        .collection('users')
+        .document(firebaseUser.uid);
+
+   // if (widget.userInformation != null) {
+   //   if (_data.userName == null && _data.profile == null) {
         _data.userName = widget.userInformation['userName'];
         _data.profile = widget.userInformation['profile'];
         _data.url = widget.userInformation['photoUrl'];
         _data.imagePath = widget.userInformation['imagePath'];
+        _data.searchKey = widget.userInformation['searchKey'];
+        _data.userId = widget.userInformation['userId'];
+       // _data.makeUserID = widget.userInformation['makeUserId'];
         print('${_data.userName}');
-      }
+      //}
 
       //編集ボタン押したときのデータベースの参照先
-      _userReference = Firestore.instance.collection('users').document(firebaseUser.uid).collection("profiles").document(widget.userInformation.documentID);
-    }
-
-
+//      _userReference = Firestore.instance
+//          .collection('users')
+//          .document(firebaseUser.uid)
+//          .collection("profiles")
+//          .document(widget.userInformation.documentID);
+  //  }
 
     return Scaffold(
-        appBar: AppBar(
-          title: Text('設定'),actions: <Widget>[
+        appBar: AppBar(title: Text('設定'), actions: <Widget>[
           IconButton(
             icon: Icon(Icons.directions_run),
             onPressed: () {
               logoutDialog(context);
             },
-          ),]
-        ),
+          ),
+        ]),
         body: SafeArea(
             child: Form(
                 //グローバルキー。紐づけするためにある。
@@ -73,100 +89,118 @@ class _SettingPageState extends State<SettingPage> {
                     children: <Widget>[
                       addimageButton(),
 
-              //ユーザー名テキストフィールド
-              TextFormField(
-                decoration: const InputDecoration(
-                  // hintText: 'name',
-                  labelText: 'ユーザー名',
-                ),
+                      //ユーザー名テキストフィールド
+                      TextFormField(
+                        decoration: const InputDecoration(
+                          // hintText: 'name',
+                          labelText: 'ユーザー名',
+                        ),
 
-                //投稿ボタンが押されたら処理が始まる
-                onSaved: (String value) {
-                  //valueの中にテキストフィールドに書き込んだ文字が格納されている
-                   _data.userName = value;
-                },
+                        //投稿ボタンが押されたら処理が始まる
+                        onSaved: (String value) {
+                          //valueの中にテキストフィールドに書き込んだ文字が格納されている
+                          _data.userName = value;
+                        },
 
-                //編集ボタン押した後のコメント欄に元あった文字を表示するのに必要。
-                 initialValue: _data.userName,
-              ),
+                        //編集ボタン押した後のコメント欄に元あった文字を表示するのに必要。
+                        initialValue: _data.userName,
+                      ),
+//                      TextFormField(
+//                        decoration: const InputDecoration(
+//                          hintText: 'ユーザー検索で表示されるために必要です',
+//                          labelText: 'ユーザーID',
+//                        ),
+//
+//                        //投稿ボタンが押されたら処理が始まる
+//                        onSaved: (String value) {
+//                          //valueの中にテキストフィールドに書き込んだ文字が格納されている
+//                          _data.makeUserID = value;
+//                        },
+//                        validator: (value) {
+//                          if (value != "") {
+//                            return 'コメントは必須入力です';
+//                          }
+//                        },
+//
+//                        //編集ボタン押した後のコメント欄に元あった文字を表示するのに必要。
+//                        initialValue: _data.makeUserID,
+//                      ),
 
-              //プロフィールテキストフィールド
-              TextFormField(
-                decoration: const InputDecoration(
-                  //hintText: 'comment',
-                  labelText: '自己紹介',
-                ),
+                      //プロフィールテキストフィールド
+                      TextFormField(
+                        decoration: const InputDecoration(
+                          //hintText: 'comment',
+                          labelText: '自己紹介',
+                        ),
 
-                //投稿ボタンが押されたら処理が始まる
-                onSaved: (String value) {
-                  //valueの中にテキストフィールドに書き込んだ文字が格納されている
-                  _data.profile = value;
-                },
+                        //投稿ボタンが押されたら処理が始まる
+                        onSaved: (String value) {
+                          //valueの中にテキストフィールドに書き込んだ文字が格納されている
+                          _data.profile = value;
+                        },
 
-                //投稿ボタンが押されたら処理が始まる
+                        //投稿ボタンが押されたら処理が始まる
 //                validator: (value) {
 //                  if (value.isEmpty) {
 //                    return 'コメントは必須入力です';
 //                  }
 //                },
 
-                //編集ボタン押した後のコメント欄に元あった文字を表示するのに必要。
-                initialValue: _data.profile,
-              ),
+                        //編集ボタン押した後のコメント欄に元あった文字を表示するのに必要。
+                        initialValue: _data.profile,
+                      ),
 
-              //投稿ボタン
-              RaisedButton(
-                  elevation: 7.0,
-                  child: Text('保存'),
-                  textColor: Colors.white,
-                  color: Colors.blue,
-                  onPressed: () {
-                    //validatorに処理を送っている。_formKeyがついているvalidatorに飛ぶ
+                      //投稿ボタン
+                      RaisedButton(
+                          elevation: 7.0,
+                          child: Text('保存'),
+                          textColor: Colors.white,
+                          color: Colors.blue,
+                          onPressed: () {
+                            //validatorに処理を送っている。_formKeyがついているvalidatorに飛ぶ
 //                      if (_formKey.currentState.validate()) {
 //                        //onSavedに処理を送っている。_formKeyがついているOnSavedに飛ぶ
-                        _formKey.currentState.save();
-                        uploadText(_userReference);
+                            _formKey.currentState.save();
+                            uploadText(_userReference);
 //
 //                        //firebaseに写真とテキストを保存する処理._mainReferenceは投稿情報を渡している。これを渡さず関数側で投稿情報を作り編集投稿すると編集できず新規投稿をしてしまう。
 //                        uploadImageText(_mainReference);
 
-                    Navigator.pop(context);
-                  }
+                            Navigator.pop(context);
+                          }
 
-                  //画面遷移
+                          //画面遷移
 
-                  )
-            ]))));
+                          )
+                    ]))));
   }
 
   void logoutDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) => AlertDialog(
-        title: const Text('確認ダイアログ'),
-        content: Text(firebaseUser.email + "でログインしています"),
-        actions: <Widget>[
-          FlatButton(
-            child: const Text('キャンセル'),
-            onPressed: () {
-              Navigator.pop(context);
-            },
+            title: const Text('確認ダイアログ'),
+            content: Text(firebaseUser.email + "でログインしています"),
+            actions: <Widget>[
+              FlatButton(
+                child: const Text('キャンセル'),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
+              FlatButton(
+                  child: const Text('ログアウト'),
+                  onPressed: () {
+                    _auth.signOut();
+                    Navigator.pushNamedAndRemoveUntil(
+                        context, "/", (_) => false);
+                  }),
+            ],
           ),
-          FlatButton(
-              child: const Text('ログアウト'),
-              onPressed: () {
-                _auth.signOut();
-                Navigator.pushNamedAndRemoveUntil(
-                    context, "/", (_) => false);
-              }),
-        ],
-      ),
     );
   }
 
-  Future<String> uploadText(_userReference) async{
-
-
+  Future<String> uploadText(_userReference) async {
     //保存する写真の名前を変更するためにUUIDを生成している
     final String uuid = Uuid().v1();
 
@@ -175,21 +209,20 @@ class _SettingPageState extends State<SettingPage> {
 
     //写真に変更を加えたときの処理
     if (photoEditAdd == true) {
-
       //写真を編集した時以前の写真をFirebabseStorageから削除
-      if ( _data.imagePath != null) {
+      if (_data.imagePath != null) {
         //firebaseStorageからデータを削除
-        final StorageReference firebaseStorageRef =
-        FirebaseStorage.instance.ref().child('image').child(
-            '${_data.imagePath}');
+        final StorageReference firebaseStorageRef = FirebaseStorage.instance
+            .ref()
+            .child('image')
+            .child('${_data.imagePath}');
         firebaseStorageRef.delete();
       }
 
-
       //_imageFileに格納されている画像をfirebaseStorageに保存している。
       final StorageReference firebaseStorageRef =
-      //imageフォルダの中に写真を保存している
-      FirebaseStorage.instance.ref().child('image').child('$uuid.jpeg');
+          //imageフォルダの中に写真を保存している
+          FirebaseStorage.instance.ref().child('image').child('$uuid.jpeg');
       final StorageUploadTask task = firebaseStorageRef.putFile(_imageFile);
 
       _data.imagePath = uuid + '.jpeg';
@@ -197,22 +230,23 @@ class _SettingPageState extends State<SettingPage> {
       //写真のurlをダウンロードしている
       var downUrl = await (await task.onComplete).ref.getDownloadURL();
 
-
       //urlに写真のURLを格納
       _data.url = downUrl.toString();
 
       print("download url : $_data.url");
     }
 
-
     //firebaseDatebaseに保存している
     _userReference.setData({
       "userName": _data.userName,
       "profile": _data.profile,
       "photoUrl": _data.url,
-      "imagePath": _data.imagePath
+      "imagePath": _data.imagePath,
+      "userId": _data.userId,
+      //"makeUserId": _data.makeUserID
+      //ユーザー名の位置文字目を取り出している
+      "searchKey":  _data.userName.substring(0,1),
     });
-
   }
 
   ///////////////画像処理
@@ -228,7 +262,6 @@ class _SettingPageState extends State<SettingPage> {
     //写真の横幅を決めている
     ImagePicker.pickImage(source: source, maxWidth: 400.0).then((File image) {
       setState(() {
-
         //写真を代入
         _imageFile = image;
         photoEditAdd = true;
@@ -253,7 +286,6 @@ class _SettingPageState extends State<SettingPage> {
             width: 2.0,
           ),
           onPressed: () {
-
             //写真をギャラリーから選ぶかカメラで今とるかの選択画面を表示
             _openImagePicker(context);
           },
@@ -277,29 +309,24 @@ class _SettingPageState extends State<SettingPage> {
           ),
         ),
         //編集時以前投稿した写真を表示
-       // imageExistingView(),
+        // imageExistingView(),
         //写真をfirebaseに保存する処理
         imageExistingView(),
-        _imageFile == null? Text(''):enableUpload(),
-
+        _imageFile == null ? Text('') : enableUpload(),
       ],
     );
   }
 
   //画像表示する処理。
-  Widget enableUpload(){
+  Widget enableUpload() {
     return Container(
         width: 190.0,
         height: 190.0,
         decoration: new BoxDecoration(
             shape: BoxShape.circle,
             image: new DecorationImage(
-                fit: BoxFit.fill,
-                image: FileImage(_imageFile)
-            )
-        ));
+                fit: BoxFit.fill, image: FileImage(_imageFile))));
   }
-
 
   //写真を追加するボタンを押されたとき呼ばれる処理。使う写真を
   void _openImagePicker(BuildContext context) {
@@ -329,7 +356,6 @@ class _SettingPageState extends State<SettingPage> {
                 textColor: Theme.of(context).primaryColor,
                 child: Text('Use Gallery'),
                 onPressed: () {
-
                   //ギャラリーが表示される
                   _getImage(context, ImageSource.gallery);
                 },
@@ -348,11 +374,8 @@ class _SettingPageState extends State<SettingPage> {
           decoration: new BoxDecoration(
               shape: BoxShape.circle,
               image: new DecorationImage(
-                  fit: BoxFit.fill,
-                  image: NetworkImage(_data.url)
-              )
-          ));
-    }else{
+                  fit: BoxFit.fill, image: NetworkImage(_data.url))));
+    } else {
       //写真を変更したときにもともと投稿してあった写真の表示をけす。
       return Container();
     }

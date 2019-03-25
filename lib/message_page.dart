@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cos/login.dart';
-import 'package:flutter_cos/my_page.dart';
+import 'package:flutter_cos/user_page.dart';
 
 class MessagePage extends StatefulWidget {
   @override
@@ -11,8 +11,6 @@ class MessagePage extends StatefulWidget {
   MessagePage(this.document);
 
   final DocumentSnapshot document;
-
-
 }
 
 class _MessagePageState extends State<MessagePage> {
@@ -20,170 +18,242 @@ class _MessagePageState extends State<MessagePage> {
 
   var _userName = "";
 
+  //起動時にユーザー名取得している。
+  @override
+  void initState() {
+    super.initState();
+    userNameSubstitution();
+  }
 
   @override
   Widget build(BuildContext context) {
+    //scaffoldにしてキーボードを出すと入力欄が上に上がりすぎる
+    return Card(
+      // margin: EdgeInsets.only(bottom: 50.0, right: 10.0, left: 10.0),
 
-    //_userNameにfirebaseに保存されているユーザー名を代入する処理
-    userNameSubstitution();
-
-    return new Scaffold(
-        appBar: new AppBar(
-          title: Text('ChatRoom'),
-        ),
-        body: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 8.0),
-          child: Column(
+//        appBar: AppBar(
+//          title: Text('ChatRoom'),
+//        ),
+//        child: Container(
+//           margin: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Column(
+        children: <Widget>[
+          SizedBox(height: 10),
+          //右隅に配置するためのRow
+          Row(
             children: <Widget>[
-              Flexible(
-                child: StreamBuilder<QuerySnapshot>(
-                    stream: Firestore.instance
-                        .collection('posts')
-                        .document(widget.document.documentID)
-                        .collection("chat_room")
-                        .orderBy("created_at", descending: true)
-                        .snapshots(),
-                    builder: (context, snapshot) {
-                      if (!snapshot.hasData) return Container();
-                      return ListView.builder(
-                        padding: EdgeInsets.all(8.0),
-                        reverse: true,
-                        itemBuilder: (_, int index) {
-                          DocumentSnapshot document =
-                              snapshot.data.documents[index];
-
-                          bool isOwnMessage = false;
-                          if (document['user_name'] == _userName) {
-                            isOwnMessage = true;
-                          }
-
-                          //メッセージを右左どちらに表示するかを決めている
-                          return isOwnMessage
-                              ? _ownMessage(document['message'], document['user_name'])
-                              : _message(
-                                  document['message'], document['user_name']);
-                        },
-                        itemCount: snapshot.data.documents.length,
-                      );
-                    }),
-              ),
-              new Divider(height: 1.0),
-              Container(
-                margin: EdgeInsets.only(bottom: 50.0, right: 10.0, left: 10.0),
-                child: Row(
-                  children: <Widget>[
-                    new Flexible(
-                      child: new TextField(
-                        controller: _controller,
-                        onSubmitted: _handleSubmit,
-                        decoration:
-                            new InputDecoration.collapsed(hintText: "メッセージの送信"),
-                      ),
-                    ),
-                    new Container(
-                      child: new IconButton(
-                          icon: new Icon(
-                            Icons.send,
-                            color: Colors.blue,
-                          ),
-                          onPressed: () {
-                            _handleSubmit(_controller.text);
-                          }),
-                    ),
-                  ],
-                ),
+              IconButton(
+                iconSize: 35,
+                icon: Icon(Icons.keyboard_arrow_left),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
               ),
             ],
           ),
-        ));
+
+          Flexible(
+            child: StreamBuilder<QuerySnapshot>(
+                stream: Firestore.instance
+                    .collection('posts')
+                //imagePathとドキュメントIDは同じ
+                    .document(widget.document["imagePath"])
+                    .collection("chat_room")
+                    .orderBy("created_at", descending: true)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) return Container();
+                  return ListView.builder(
+                    padding: EdgeInsets.all(8.0),
+                    reverse: true,
+                    itemBuilder: (_, int index) {
+                      DocumentSnapshot document =
+                          snapshot.data.documents[index];
+
+                      bool isOwnMessage = false;
+                      if (document['userId'] == firebaseUser.uid) {
+                        isOwnMessage = true;
+                      }
+
+                      //メッセージを右左どちらに表示するかを決めている
+                      return isOwnMessage
+                          ? _ownMessage(document)
+                          : _message(document);
+                    },
+                    itemCount: snapshot.data.documents.length,
+                  );
+                }),
+          ),
+
+          //線
+          Divider(height: 1.0),
+
+          Container(
+            margin: EdgeInsets.only(bottom: 50.0, right: 10.0, left: 10.0),
+            child: Row(
+              children: <Widget>[
+                Flexible(
+                  child: TextField(
+                    controller: _controller,
+
+                    //チェックマークを押したときも送信できるようにしている
+                    onSubmitted: _handleSubmit,
+                    decoration: InputDecoration.collapsed(hintText: "メッセージの送信"),
+                  ),
+                ),
+                Container(
+                  child: IconButton(
+                      icon: Icon(
+                        Icons.send,
+                        color: Colors.blue,
+                      ),
+                      onPressed: () {
+                        _handleSubmit(_controller.text);
+                      }),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      //  )
+    );
   }
 
-  Widget _ownMessage(String message, String userName) {
+  Widget _ownMessage(DocumentSnapshot document) {
     return Row(mainAxisAlignment: MainAxisAlignment.end, children: <Widget>[
-      Icon(Icons.person),
       Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           SizedBox(
             height: 10.0,
           ),
-          Text(userName),
-          Text(message),
+          Text(document["message"]),
         ],
       )
     ]);
   }
 
-  Widget _message(String message, String userName) {
+  Widget _message(DocumentSnapshot document) {
     return Row(
       children: <Widget>[
-        Icon(Icons.person),
         Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             SizedBox(
-              height: 10.0,
+              height: 20.0,
             ),
-            Text(userName),
-            Text(message),
+            _messageName(document),
           ],
-        )
+        ),
+        Text(document["message"])
       ],
     );
   }
 
   _handleSubmit(String message) {
-    _controller.text = "";
-    print(message);
+    if (message != "") {
+      _controller.text = "";
+      print(message);
 
-    DocumentReference _mainReference;
-    _mainReference = Firestore.instance
-        .collection('posts')
-        .document(widget.document.documentID);
+      DocumentReference _messageRef;
+      _messageRef = Firestore.instance
+          .collection('posts')
+          .document(widget.document.documentID);
 
-    _mainReference.collection("chat_room").add({
-      "user_name": _userName,
-      "message": message,
-      "created_at": DateTime.now()
-    }).then((val) {
-      print("成功です");
-      print("$_userName");
-    }).catchError((err) {
-      print(err);
-    });
+
+
+      _messageRef.collection("chat_room").add({
+        "message": message,
+        "created_at": DateTime.now(),
+        "userId": firebaseUser.uid,
+        "userName": _userName
+      }).then((val) {
+        print("成功です");
+        print("$_userName");
+      }).catchError((err) {
+        print(err);
+      });
+
+      if(firebaseUser.uid != widget.document['userId']){
+      DocumentReference _noticeMessageRef;
+      _noticeMessageRef = Firestore.instance
+          .collection('users')
+          .document(widget.document['userId'])
+          .collection("notice")
+          .document();
+
+      _noticeMessageRef.setData({
+        "documentId": widget.document.documentID,
+        "userId" : firebaseUser.uid,
+        "message": "mes",
+        "url":  widget.document["url"],
+        //imagePathとドキュメントIDは同じなので
+        "imagePath": widget.document["imagePath"],
+        "time": DateTime.now(),
+      });}
+
+    }
   }
 
   //_userNameという変数にfirebaseに保存されているユーザー名を代入
-Widget userNameSubstitution() {
-  Firestore.instance
-      .collection('users')
-      .document(firebaseUser.uid)
-      .collection("transaction")
-      .snapshots()
-      .listen((data) =>
-      data.documents.forEach((doc) => _userName = doc["userName"]));
-}
+  userNameSubstitution() {
+    Firestore.instance
+        .collection('users')
+        .where('userId', isEqualTo: firebaseUser.uid)
+        .snapshots()
+        .listen((data) =>
+            data.documents.forEach((doc) => _userName = doc["userName"]));
+  }
 
+  Widget _messageName(DocumentSnapshot document) {
+    return StreamBuilder<QuerySnapshot>(
+        stream: Firestore.instance
+            .collection('users')
+            .where('userId', isEqualTo: document['userId'])
+            .snapshots(),
+        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          if (!snapshot.hasData) return const Text('Loading...');
+         // userInformation = snapshot.data.documents[0];
 
-
-
-
-//  Widget user() {
-//    StreamBuilder(
-//        stream: Firestore.instance
-//            .collection('users')
-//            .document(firebaseUser.uid)
-//            .collection("transaction")
-//            .snapshots(),
-//        builder: (context, snapshot) {
-//          if (!snapshot.hasData) return Text('Loading');
-//          return Column(children: <Widget>[
-//            Text(snapshot.data.documents[0]['userName']),
-//           Text(snapshot.data.documents[0]['profile']),
-//          ]);
-//        });
-//  }
-
+          //ユーザ登録していない人としている人で処理を分けている。
+          if (snapshot.data.documents.length == 0) {
+            return Container(
+              //margin: EdgeInsets.only(),
+              child: Text('未登録さん'),);
+          } else {
+            return InkWell(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        settings: const RouteSettings(name: "/userPage"),
+                        builder: (BuildContext context) =>
+                            //表示されている名前のユーザーIDをUserPageに渡している
+                            UserPage(document['userId'])),
+                  );
+                },
+                child: Column(
+                  children: <Widget>[
+                    Container(
+                        width: 40.0,
+                        height: 40.0,
+                        decoration: new BoxDecoration(
+                            shape: BoxShape.circle,
+                            image: new DecorationImage(
+                                fit: BoxFit.fill,
+                                image: new NetworkImage(
+                                    snapshot.data.documents[0]['photoUrl'])))),
+                    SizedBox(
+                      height: 5.0,
+                    ),
+                    Text(snapshot.data.documents[0]['userName']),
+                  ],
+                ));
+            // Text(snapshot.data.documents[0]['userName']);
+          }
+        });
+  }
 }
 
 //class _MessagePageState extends State<MessagePage> {

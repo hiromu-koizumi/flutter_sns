@@ -30,12 +30,12 @@ class _MyFollowPageState extends State<MyFollowPage>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(""),
-        bottom: TabBar(
+        //title: const Text(""),
+        title: TabBar(
           controller: _tabController,
           tabs: tabs,
         ),
-        actions: <Widget>[],
+       // actions: <Widget>[],
       ),
 
       //上タブ表示させる処理
@@ -114,8 +114,7 @@ class _MyFollowPageState extends State<MyFollowPage>
     return StreamBuilder<QuerySnapshot>(
         stream: Firestore.instance
             .collection('users')
-            .document(document['userId'])
-            .collection("profiles")
+            .where('userId', isEqualTo:document['userId'])
             .snapshots(),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (!snapshot.hasData) return const Text('Loading...');

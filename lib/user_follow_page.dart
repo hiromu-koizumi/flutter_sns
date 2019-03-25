@@ -36,8 +36,8 @@ class _UserFollowPageState extends State<UserFollowPage>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(""),
-        bottom: TabBar(
+      //  title: const Text(""),
+        title: TabBar(
           controller: _tabController,
           tabs: tabs,
         ),
@@ -127,8 +127,7 @@ class _UserFollowPageState extends State<UserFollowPage>
     return StreamBuilder<QuerySnapshot>(
         stream: Firestore.instance
             .collection('users')
-            .document(document['userId'])
-            .collection('profiles')
+            .where('userId',isEqualTo:document['userId'])
             .snapshots(),
 
         //streamが更新されるたびに呼ばれる
@@ -147,7 +146,27 @@ class _UserFollowPageState extends State<UserFollowPage>
                 ),
               );
             },
-            child: Text(snapshot.data.documents[0]['userName'])
+            child: Row(
+              children: <Widget>[
+                Container(
+                    width: 40.0,
+                    height: 40.0,
+                    decoration: new BoxDecoration(
+                        shape: BoxShape.circle,
+                        image: new DecorationImage(
+                            fit: BoxFit.fill,
+                            image: new NetworkImage(
+                                snapshot.data.documents[0]['photoUrl'])))),
+                SizedBox(
+                  width: 20.0,
+                ),
+                Text(snapshot.data.documents[0]['userName']),
+              ],
+            )
+
+
+
+            //Text(snapshot.data.documents[0]['userName'])
           );
 
             //Text(snapshot.data.documents[0]['userName']);

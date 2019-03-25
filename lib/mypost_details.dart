@@ -162,8 +162,7 @@ class _MyPostDetailsState extends State<MyPostDetails>{
     return StreamBuilder<QuerySnapshot>(
         stream: Firestore.instance
             .collection('users')
-            .document(widget.document['userId'])
-            .collection("profiles")
+            .where('userId', isEqualTo:widget.document['userId'])
             .snapshots(),
 
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {

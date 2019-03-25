@@ -1,11 +1,18 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:collection/collection.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cos/main.dart';
+import 'package:flutter_cos/tag/word_bloc.dart';
+import 'package:flutter_cos/tag/word_item.dart';
+import 'package:flutter_cos/tag/word_provider.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
+//import 'package:rxdart/rxdart.dart';
 import 'package:uuid/uuid.dart';
 import 'login.dart';
 
@@ -32,6 +39,8 @@ class _FormData {
 
   //写真を削除するときにurlとは別にimagePathが必要だと思う
   String imagePath;
+
+  String documentId;
 }
 
 
@@ -39,6 +48,21 @@ class _FormData {
 class _PostPageState extends State<PostPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final _FormData _data = _FormData();
+
+//textfieldの中に書き込まれた文字を取得するために必要
+  final myController = TextEditingController();
+  @override
+  void dispose() {
+    // Clean up the controller when the Widget is disposed
+    myController.dispose();
+    super.dispose();
+  }
+
+  var taglist = [];
+  StreamController<List> tag = StreamController<List>.broadcast();
+
+  List<String> litems = [];
+  final TextEditingController eCtrl = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +95,24 @@ class _PostPageState extends State<PostPage> {
 
       deleteFlg = true;
     }
+    if (firebaseUser.isAnonymous) {
+      return Scaffold(
+          appBar: AppBar(
+          title: const Text('')),
+          body:
+      Center(child:
+      Text("投稿機能を使うには登録が必要です\t下の顔のマークから登録おねがいします!！",
+        //textの折返しのために必要
+        softWrap: true,
+        maxLines: 3,
 
+        textAlign: TextAlign.center,
+        style: TextStyle(fontWeight: FontWeight.bold,fontSize: 20),
+
+      )
+      )
+      );
+    } else {
     return Scaffold(
       appBar: AppBar(
         title: const Text('投稿'),
@@ -104,7 +145,12 @@ class _PostPageState extends State<PostPage> {
 
         ],
       ),
-      body: SafeArea(
+      body: GestureDetector(
+    behavior: HitTestBehavior.opaque,
+    onTap: () {
+    FocusScope.of(context).requestFocus(new FocusNode());
+    },
+    child:SafeArea(
           child: Form(
             //グローバルキー。紐づけするためにある。
             key: _formKey,
@@ -116,7 +162,7 @@ class _PostPageState extends State<PostPage> {
                 //ImageInput(),
                 TextFormField(
                   decoration: const InputDecoration(
-                    hintText: 'comment',
+                 //   hintText: 'comment',
                     labelText: 'コメント',
                   ),
 
@@ -138,6 +184,67 @@ class _PostPageState extends State<PostPage> {
 
                 ),
 
+
+              SizedBox(height: 20,),
+              Container(
+              child:  StreamBuilder(
+                  stream: tag.stream,
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) return const Text('');
+                    // print(snapshot.data.length);
+                    return Text(snapshot.data.toString());
+                  }
+
+                )
+              ),
+
+
+             Column(
+            children: <Widget>[
+              TextField(
+                controller: myController,
+                decoration: const InputDecoration(
+                     hintText: '入力したらタグ追加ボタンを押してね！',
+                  labelText: 'タグ',
+                ),
+              ),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    RaisedButton(
+                        elevation: 7.0,
+                        child: Text('タグを追加'),
+                        textColor: Colors.white,
+                        color: Colors.blue,
+                        onPressed: () {
+
+                          taglist.add(myController.text);
+                          tag.add(taglist);
+                          print(taglist);
+                          myController.text = "";
+
+//                    print(myController.text);
+
+                          //word.wordAddition.add(WordAddition(myController.text));
+                        }),
+                    IconButton(
+                      icon: Icon(Icons.highlight_off),
+                      onPressed: () {
+
+                       taglist.removeLast();
+                       tag.add(taglist);
+                      },
+                    ),
+
+                  ],
+                ),
+
+                ]),
+
+//
+                SizedBox(height: 15),
+
                 //投稿ボタン
                 RaisedButton(
                     elevation: 7.0,
@@ -145,8 +252,12 @@ class _PostPageState extends State<PostPage> {
                     textColor: Colors.white,
                     color: Colors.blue,
                     onPressed: () {
+
                       //validatorに処理を送っている。_formKeyがついているvalidatorに飛ぶ
                       if (_formKey.currentState.validate()) {
+                        if (_imageFile == null){
+                         return Fluttertoast.showToast(msg: "写真を選択してね！");
+                        }
                         //onSavedに処理を送っている。_formKeyがついているOnSavedに飛ぶ
                         _formKey.currentState.save();
 
@@ -159,10 +270,14 @@ class _PostPageState extends State<PostPage> {
               ],
             ),
           )
-      ),
-    );
+      ),)
+    );}
 
   }
+
+
+
+
 
   //写真が追加、変更されたか
   bool photoEditAdd = false;
@@ -334,6 +449,7 @@ class _PostPageState extends State<PostPage> {
       //写真のurlをダウンロードしている
       var downUrl = await (await task.onComplete).ref.getDownloadURL();
 
+      _data.documentId = uuid;
 
       //urlに写真のURLを格納
       _data.url = downUrl.toString();
@@ -354,7 +470,8 @@ class _PostPageState extends State<PostPage> {
       "comment": _data.comment,
       "time": _data.date,
       "imagePath" : _data.imagePath,
-      "userId" : firebaseUser.uid
+      "userId" : firebaseUser.uid,
+      "tag" : taglist
     });
     _userPostsReference.setData({
       "url": _data.url,

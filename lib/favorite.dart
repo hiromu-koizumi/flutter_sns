@@ -22,21 +22,32 @@ uploadFavorite(document) async {
 
   DocumentReference _favoritedUserRef;
   DocumentReference _beFavoritedUserRef;
+  DocumentReference _noticeFavoriteRef;
 
+//document.documentIDはいいねした投稿のドキュメントID
+
+  //いいねした人のDBにいいねした投稿のドキュメントIDを保存
   _favoritedUserRef = Firestore.instance
       .collection('users')
       .document(firebaseUser.uid)
       .collection("favorite")
       .document(document.documentID);
 
+  //いいねされた人のDBにいいねした人のユーザーIdなどを保存
   _beFavoritedUserRef = Firestore.instance
       .collection('users')
       .document(document['userId'])
       .collection("posts")
       .document(document.documentID)
       .collection('beFavorited')
-  //削除できるようにdocumentIDを指定している
-      .document(document.documentID);
+  //削除できるようにユーザーIdを指定している
+      .document(firebaseUser.uid);
+
+  _noticeFavoriteRef = Firestore.instance
+      .collection('users')
+      .document(document['userId'])
+      .collection("notice")
+      .document();
 
 
   //処理を1秒遅らせている。遅らせないとsavedDocumentIDが更新される前にこちらの処理をしてしまう。
@@ -54,8 +65,18 @@ uploadFavorite(document) async {
       });
       _beFavoritedUserRef.setData({
         "documentId": document.documentID,
-        "userId" : document["userId"],
+        "userId" : firebaseUser.uid,
         "time": DateTime.now(),
+      });
+      _noticeFavoriteRef.setData({
+        "documentId": document.documentID,
+        "userId" : firebaseUser.uid,
+        "time": DateTime.now(),
+
+        //favoriteとフォローを識別するためにつけている
+        "favorite": "fav",
+
+        "url":  document["url"]
       });
     }
   });
