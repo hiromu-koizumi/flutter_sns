@@ -39,6 +39,7 @@ class BottomBar extends StatefulWidget {
 
 //下タブ
 class _BottomBarState extends State<BottomBar> {
+
   @override
   build(BuildContext context) {
 
@@ -108,11 +109,12 @@ class TimeLine extends StatefulWidget {
 }
 
 class _TimeLineState extends State<TimeLine> //上タブのために必要
-    with
-        SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin {
+
   final List<Tab> tabs = <Tab>[
     Tab(text: '新着'),
     Tab(text: 'フォロー'),
+
   ];
   TabController _tabController;
 
@@ -121,9 +123,32 @@ class _TimeLineState extends State<TimeLine> //上タブのために必要
   void initState() {
     super.initState();
     _tabController = TabController(vsync: this, length: tabs.length);
+//    Firestore.instance
+//        .collection('users')
+//        .document(firebaseUser.uid)
+//        .collection("tabs")
+//        .snapshots()
+//        .listen((data) =>
+//        data.documents.forEach((doc) => tabs.add(Tab(text: doc["tab"]))));
+//    print("早い法$tabs");
+////
+//    Future.delayed(new Duration(seconds: 1), () {
+//      _tabController = TabController(vsync: this, length: tabs.length);
+//      print('遅い法$tabs');
+//    });
   }
 
   Widget build(BuildContext context) {
+
+    //_tabController = TabController(vsync: this, length: tabs.length);
+//    Firestore.instance
+//        .collection('users')
+//        .document(firebaseUser.uid)
+//        .collection("tabs")
+//        .snapshots()
+//        .listen((data) =>
+//        data.documents.forEach((doc) => tabs.add(Tab(text: doc["tab"]))));
+//    print(tabs);
     return Scaffold(
       appBar: AppBar(
         actions: <Widget>[
@@ -212,6 +237,7 @@ class _TimeLineState extends State<TimeLine> //上タブのために必要
               stream: Firestore.instance
                   .collection('posts')
                   .orderBy("time", descending: true)
+                  .limit(10)
                   .snapshots(),
               builder: (BuildContext context,
                   AsyncSnapshot<QuerySnapshot> snapshot) {

@@ -57,7 +57,7 @@ class _MessagePageState extends State<MessagePage> {
                 stream: Firestore.instance
                     .collection('posts')
                 //imagePathとドキュメントIDは同じ
-                    .document(widget.document["imagePath"])
+                    .document(widget.document["documentId"])
                     .collection("chat_room")
                     .orderBy("created_at", descending: true)
                     .snapshots(),
@@ -188,8 +188,6 @@ class _MessagePageState extends State<MessagePage> {
         "userId" : firebaseUser.uid,
         "message": "mes",
         "url":  widget.document["url"],
-        //imagePathとドキュメントIDは同じなので
-        "imagePath": widget.document["imagePath"],
         "time": DateTime.now(),
       });}
 
@@ -235,15 +233,15 @@ class _MessagePageState extends State<MessagePage> {
                 },
                 child: Column(
                   children: <Widget>[
-                    Container(
-                        width: 40.0,
-                        height: 40.0,
-                        decoration: new BoxDecoration(
-                            shape: BoxShape.circle,
-                            image: new DecorationImage(
-                                fit: BoxFit.fill,
-                                image: new NetworkImage(
-                                    snapshot.data.documents[0]['photoUrl'])))),
+                    Material(
+                      child: Image.network(
+                        ( snapshot.data.documents[0]['photoUrl']),
+                        width: 40,
+                        height: 40,
+                        fit: BoxFit.cover,
+                      ),borderRadius: BorderRadius.all(Radius.circular(20.0)),
+                      clipBehavior: Clip.hardEdge,
+                    ),
                     SizedBox(
                       height: 5.0,
                     ),

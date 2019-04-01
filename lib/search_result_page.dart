@@ -149,15 +149,24 @@ class _SearchResultPageState extends State<SearchResultPage>
         },
         child: Row(
           children: <Widget>[
-            Container(
-                width: 40.0,
-                height: 40.0,
-                decoration: new BoxDecoration(
-                    shape: BoxShape.circle,
-                    image: new DecorationImage(
-                        fit: BoxFit.fill,
-                        image: new NetworkImage(
-                            document['photoUrl'])))),
+            Material(
+              child: Image.network(
+                ( document['photoUrl']),
+                width: 40,
+                height: 40,
+                fit: BoxFit.cover,
+              ),borderRadius: BorderRadius.all(Radius.circular(20.0)),
+              clipBehavior: Clip.hardEdge,
+            ),
+//            Container(
+//                width: 40.0,
+//                height: 40.0,
+//                decoration: new BoxDecoration(
+//                    shape: BoxShape.circle,
+//                    image: new DecorationImage(
+//                        fit: BoxFit.fill,
+//                        image: new NetworkImage(
+//                            document['photoUrl'])))),
             SizedBox(
               width: 20.0,
             ),

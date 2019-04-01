@@ -33,7 +33,7 @@ class _MyFavoritePageState extends State<MyFavoritePage> {
               .collection('users')
               .document(firebaseUser.uid)
               .collection("posts")
-              .document(widget.document["imagePath"])
+              .document(widget.document["documentId"])
               .collection("beFavorited")
               .orderBy("time", descending: true)
               .snapshots(),
@@ -81,15 +81,15 @@ class _MyFavoritePageState extends State<MyFavoritePage> {
                 },
                 child: Row(
                   children: <Widget>[
-                    Container(
-                        width: 40.0,
-                        height: 40.0,
-                        decoration: new BoxDecoration(
-                            shape: BoxShape.circle,
-                            image: new DecorationImage(
-                                fit: BoxFit.fill,
-                                image: new NetworkImage(
-                                    snapshot.data.documents[0]['photoUrl'])))),
+                    Material(
+                      child: Image.network(
+                        ( snapshot.data.documents[0]['photoUrl']),
+                        width: 40,
+                        height: 40,
+                        fit: BoxFit.cover,
+                      ),borderRadius: BorderRadius.all(Radius.circular(20.0)),
+                      clipBehavior: Clip.hardEdge,
+                    ),
                     SizedBox(
                       width: 20.0,
                     ),

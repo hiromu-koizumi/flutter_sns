@@ -57,7 +57,8 @@ class _UserPageState extends State<UserPages> {
   //widget.documentにはこのページのユーザーの情報が格納されている.
   //_followReferenceは自分のDBの保存先
   //フォローとフォロー解除の処理をif文で書いている。firebaseのfollowに保存されていればdeleteの処理。なければ保存の処理。
-  followCheck(_myFollowReference, _othersFollowReference,_noticeFollowRef) async {
+  followCheck(
+      _myFollowReference, _othersFollowReference, _noticeFollowRef) async {
     String checkFollow;
     String toFollowName;
     String isFollowedName;
@@ -124,7 +125,7 @@ class _UserPageState extends State<UserPages> {
   }
 
   //フォローボタンの表示の切り替え処理。
-  followButton(_myFollowReference, _othersFollowReference,_noticeFollowRef) {
+  followButton(_myFollowReference, _othersFollowReference, _noticeFollowRef) {
     return Padding(
       padding: const EdgeInsets.only(top: 1),
       child: StreamBuilder<QuerySnapshot>(
@@ -147,7 +148,8 @@ class _UserPageState extends State<UserPages> {
                 child: Text('フォローする'),
                 onPressed: () {
                   print('${snapshot.data.documents.length}');
-                  followCheck(_myFollowReference, _othersFollowReference,_noticeFollowRef);
+                  followCheck(_myFollowReference, _othersFollowReference,
+                      _noticeFollowRef);
                 },
               );
             } else {
@@ -155,7 +157,8 @@ class _UserPageState extends State<UserPages> {
               return RaisedButton(
                 child: Text('フォロー中'),
                 onPressed: () {
-                  followCheck(_myFollowReference, _othersFollowReference,_noticeFollowRef);
+                  followCheck(_myFollowReference, _othersFollowReference,
+                      _noticeFollowRef);
                 },
               );
             }
@@ -201,7 +204,8 @@ class _UserPageState extends State<UserPages> {
           return CustomScrollView(
             slivers: <Widget>[
               // makeHeader(_myFollowReference, _othersFollowReference),
-              userProfileHeader(_myFollowReference, _othersFollowReference,_noticeFollowRef),
+              userProfileHeader(
+                  _myFollowReference, _othersFollowReference, _noticeFollowRef),
               SliverStaggeredGrid.countBuilder(
                 crossAxisCount: 2,
                 itemBuilder: (context, index) {
@@ -217,82 +221,152 @@ class _UserPageState extends State<UserPages> {
         });
   }
 
-  userProfileHeader(_myFollowReference, _othersFollowReference,_noticeFollowRef) {
+  userProfileHeader(
+      _myFollowReference, _othersFollowReference, _noticeFollowRef) {
     return SliverAppBar(
-        expandedHeight: 150.0,
+        expandedHeight: 200.0,
         backgroundColor: Colors.white,
         flexibleSpace: FlexibleSpaceBar(
             background: Container(
           margin: EdgeInsets.all(16.0),
           //color: Colors.white, child: Center(child: userName())
-          child: Row(
+
+          child: Column(
             children: <Widget>[
-              InkWell(
-                  onTap: () {
-                    print('photoChange');
-                  },
-                  // child: Expanded(
-                  child: userProfile()),
-              Expanded(
-                child: Column(
-                  //crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
+              Row(
+                children: <Widget>[
+                  userImage(),
 
-                  children: <Widget>[
-                    Padding(
-                        padding: const EdgeInsets.only(left: 50, right: 50),
-                        child: Column(children: <Widget>[
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: <Widget>[
-                              InkWell(
-                                onTap: () {
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          settings: const RouteSettings(
-                                              name: "/FollowPage"),
+                  //中央に配置するために付けている
+                  Expanded(
+                      child: Column(
+                    children: <Widget>[
+                      SizedBox(height: 15,),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      settings: const RouteSettings(
+                                          name: "/FollowPage"),
 
-                                          //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
-                                          builder: (BuildContext context) =>
-                                              UserFollowPage(widget.userId)));
-                                },
-                                child: Column(
-                                  children: <Widget>[
-                                    Text('フォロー'),
-                                    _followingNumber()
-                                  ],
-                                ),
-                              ),
-                              InkWell(
-                                onTap: () {
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          settings: const RouteSettings(
-                                              name: "/FollowPage"),
-
-                                          //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
-                                          builder: (BuildContext context) =>
-                                              UserFollowPage(widget.userId)));
-                                },
-                                child: Column(
-                                  children: <Widget>[
-                                    Text('フォロワー'),
-                                    _followersNumber()
-                                  ],
-                                ),
-                              ),
-                            ],
+                                      //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
+                                      builder: (BuildContext context) =>
+                                          UserFollowPage(widget.userId)));
+                            },
+                            child: Column(
+                              children: <Widget>[
+                                Text('フォロー'),
+                                _followingNumber()
+                              ],
+                            ),
                           ),
-                          followButton(
-                              _myFollowReference, _othersFollowReference,_noticeFollowRef)
-                        ])),
-                  ],
-                ),
+                          SizedBox(
+                            width: 40,
+                          ),
+                          InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      settings: const RouteSettings(
+                                          name: "/FollowPage"),
+
+                                      //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
+                                      builder: (BuildContext context) =>
+                                          UserFollowPage(widget.userId)));
+                            },
+                            child: Column(
+//                              crossAxisAlignment: CrossAxisAlignment.start,
+//                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: <Widget>[
+                                Text('フォロワー'),
+                                _followersNumber()
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      followButton(_myFollowReference, _othersFollowReference,
+                          _noticeFollowRef)
+                    ],
+                  )),
+                ],
               ),
+              userProfile(),
             ],
           ),
+//          child: Row(
+//            children: <Widget>[
+//              InkWell(
+//                  onTap: () {
+//                    print('photoChange');
+//                  },
+//                  // child: Expanded(
+//                  child: userProfile()),
+//              Expanded(
+//                child: Column(
+//                  //crossAxisAlignment: CrossAxisAlignment.start,
+//                  mainAxisAlignment: MainAxisAlignment.center,
+//
+//                  children: <Widget>[
+//                    Padding(
+//                        padding: const EdgeInsets.only(left: 50, right: 50),
+//                        child: Column(children: <Widget>[
+//                          Row(
+//                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                            children: <Widget>[
+//                              InkWell(
+//                                onTap: () {
+//                                  Navigator.push(
+//                                      context,
+//                                      MaterialPageRoute(
+//                                          settings: const RouteSettings(
+//                                              name: "/FollowPage"),
+//
+//                                          //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
+//                                          builder: (BuildContext context) =>
+//                                              UserFollowPage(widget.userId)));
+//                                },
+//                                child: Column(
+//                                  children: <Widget>[
+//                                    Text('フォロー'),
+//                                    _followingNumber()
+//                                  ],
+//                                ),
+//                              ),
+//                              InkWell(
+//                                onTap: () {
+//                                  Navigator.push(
+//                                      context,
+//                                      MaterialPageRoute(
+//                                          settings: const RouteSettings(
+//                                              name: "/FollowPage"),
+//
+//                                          //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
+//                                          builder: (BuildContext context) =>
+//                                              UserFollowPage(widget.userId)));
+//                                },
+//                                child: Column(
+//                                  children: <Widget>[
+//                                    Text('フォロワー'),
+//                                    _followersNumber()
+//                                  ],
+//                                ),
+//                              ),
+//                            ],
+//                          ),
+//                          followButton(
+//                              _myFollowReference, _othersFollowReference,_noticeFollowRef)
+//                        ])),
+//                  ],
+//                ),
+//              ),
+//            ],
+//          ),
         )));
   }
 
@@ -323,25 +397,94 @@ class _UserPageState extends State<UserPages> {
             .snapshots(),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (!snapshot.hasData) return const Text('Loading...');
-          if (snapshot.data.documents.length == 0) return Text('NONAME');
           userInformation = snapshot.data.documents[0];
 
-          return Column(
+          return Flexible(
+              child: Column(
             children: <Widget>[
-              Container(
-                  width: 80.0,
-                  height: 80.0,
-                  decoration: new BoxDecoration(
-                      shape: BoxShape.circle,
-                      image: new DecorationImage(
-                          fit: BoxFit.fill,
-                          image: new NetworkImage(
-                              snapshot.data.documents[0]['photoUrl'])))),
-              Text(snapshot.data.documents[0]['userName']),
+              //左端に寄せるためにRow使用している。もっと良いコードあるはず。
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    snapshot.data.documents[0]['userName'],
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: <Widget>[
+                  //テキストを折り返すためにFlexible、softWrap: trueをつけている
+                  //上でFlexible使用しているがこちらでもつけないと折り返せなかった。
+                  Flexible(
+                    child: Container(
+                      child: Text(
+                        snapshot.data.documents[0]['profile'],
+                        softWrap: true,
+                      ),
+                    ),
+                  )
+                ],
+              ),
             ],
+          ));
+        });
+  }
+
+  Widget userImage() {
+    return StreamBuilder<QuerySnapshot>(
+        stream: Firestore.instance
+            .collection('users')
+            .where('userId', isEqualTo: widget.userId)
+            .snapshots(),
+        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          if (!snapshot.hasData) return const Text('Loading...');
+          userInformation = snapshot.data.documents[0];
+
+          return Material(
+            child: Image.network(
+              (snapshot.data.documents[0]['photoUrl']),
+              width: 80,
+              height: 80,
+              fit: BoxFit.cover,
+            ),
+            borderRadius: BorderRadius.all(
+              Radius.circular(40.0),
+            ),
+            clipBehavior: Clip.hardEdge,
           );
         });
   }
+
+//  Widget userProfile() {
+//    return StreamBuilder<QuerySnapshot>(
+//        stream: Firestore.instance
+//            .collection('users')
+//            .where('userId', isEqualTo: widget.userId)
+//            .snapshots(),
+//        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+//          if (!snapshot.hasData) return const Text('Loading...');
+//          if (snapshot.data.documents.length == 0) return Text('NONAME');
+//          userInformation = snapshot.data.documents[0];
+//
+//          return Column(
+//            children: <Widget>[
+//              Material(
+//                child: Image.network(
+//                  ( snapshot.data.documents[0]['photoUrl']),
+//                  width: 80,
+//                  height: 80,
+//                  fit: BoxFit.cover,
+//                ),borderRadius: BorderRadius.all(Radius.circular(40.0)),
+//                clipBehavior: Clip.hardEdge,
+//              ),
+//              Text(snapshot.data.documents[0]['userName']),
+//            ],
+//          );
+//        });
+//  }
 
   Widget _followingNumber() {
     return StreamBuilder<QuerySnapshot>(

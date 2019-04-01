@@ -143,14 +143,23 @@ Widget buildResultCard(BuildContext context, data) {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          Container(
-              width: 40.0,
-              height: 40.0,
-              decoration: new BoxDecoration(
-                  shape: BoxShape.circle,
-                  image: new DecorationImage(
-                      fit: BoxFit.fill,
-                      image: new NetworkImage(data['photoUrl'])))),
+          Material(
+            child: Image.network(
+              (data['photoUrl']),
+              width: 40,
+              height: 40,
+              fit: BoxFit.cover,
+            ),borderRadius: BorderRadius.all(Radius.circular(20.0)),
+            clipBehavior: Clip.hardEdge,
+          ),
+//          Container(
+//              width: 40.0,
+//              height: 40.0,
+//              decoration: new BoxDecoration(
+//                  shape: BoxShape.circle,
+//                  image: new DecorationImage(
+//                      fit: BoxFit.fill,
+//                      image: new NetworkImage(data['photoUrl'])))),
           Text(data['userName']),
         ],
       ));

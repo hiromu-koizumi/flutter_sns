@@ -134,40 +134,44 @@ class _UserFollowPageState extends State<UserFollowPage>
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (!snapshot.hasData) return const Text('Loading...');
 
-          return InkWell(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    settings: const RouteSettings(name: "/userPage"),
-                    builder: (BuildContext context) =>
-                    //表示されている名前のユーザーIDをUserPageに渡している
-                        UserPage(document['userId'])
-                ),
-              );
-            },
-            child: Row(
-              children: <Widget>[
-                Container(
-                    width: 40.0,
-                    height: 40.0,
-                    decoration: new BoxDecoration(
-                        shape: BoxShape.circle,
-                        image: new DecorationImage(
-                            fit: BoxFit.fill,
-                            image: new NetworkImage(
-                                snapshot.data.documents[0]['photoUrl'])))),
-                SizedBox(
-                  width: 20.0,
-                ),
-                Text(snapshot.data.documents[0]['userName']),
-              ],
-            )
+          return
+            Padding(
+              padding: EdgeInsets.only(top: 5,left: 5),
+              child: InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          settings: const RouteSettings(name: "/userPage"),
+                          builder: (BuildContext context) =>
+                          //表示されている名前のユーザーIDをUserPageに渡している
+                          UserPage(document['userId'])
+                      ),
+                    );
+                  },
+                  child: Row(
+                    children: <Widget>[
+                      Material(
+                        child: Image.network(
+                          ( snapshot.data.documents[0]['photoUrl']),
+                          width: 40,
+                          height: 40,
+                          fit: BoxFit.cover,
+                        ),borderRadius: BorderRadius.all(Radius.circular(20.0)),
+                        clipBehavior: Clip.hardEdge,
+                      ),
+                      SizedBox(
+                        width: 20.0,
+                      ),
+                      Text(snapshot.data.documents[0]['userName']),
+                    ],
+                  )
 
 
 
-            //Text(snapshot.data.documents[0]['userName'])
-          );
+                //Text(snapshot.data.documents[0]['userName'])
+              ));
+
 
             //Text(snapshot.data.documents[0]['userName']);
 

@@ -317,15 +317,17 @@ class _SettingPageState extends State<SettingPage> {
     );
   }
 
-  //画像表示する処理。
-  Widget enableUpload() {
-    return Container(
-        width: 190.0,
-        height: 190.0,
-        decoration: new BoxDecoration(
-            shape: BoxShape.circle,
-            image: new DecorationImage(
-                fit: BoxFit.fill, image: FileImage(_imageFile))));
+
+ Widget enableUpload() {
+ return Material(
+   child: Image.file(
+     (_imageFile),
+     width: 190,
+     height: 190,
+     fit: BoxFit.cover,
+   ),borderRadius: BorderRadius.all(Radius.circular(100.0)),
+   clipBehavior: Clip.hardEdge,
+ );
   }
 
   //写真を追加するボタンを押されたとき呼ばれる処理。使う写真を
@@ -368,13 +370,22 @@ class _SettingPageState extends State<SettingPage> {
   //編集時以前投稿した写真表示
   Widget imageExistingView() {
     if (_data.url != null && _imageFile == null) {
-      return Container(
-          width: 190.0,
-          height: 190.0,
-          decoration: new BoxDecoration(
-              shape: BoxShape.circle,
-              image: new DecorationImage(
-                  fit: BoxFit.fill, image: NetworkImage(_data.url))));
+//      return Container(
+//          width: 190.0,
+//          height: 190.0,
+//          decoration: new BoxDecoration(
+//              shape: BoxShape.circle,
+//              image: new DecorationImage(
+//                  fit: BoxFit.fill, image: NetworkImage(_data.url))));
+      return Material(
+        child: Image.network(
+          (_data.url),
+          width: 190,
+          height: 190,
+          fit: BoxFit.cover,
+        ),borderRadius: BorderRadius.all(Radius.circular(100.0)),
+        clipBehavior: Clip.hardEdge,
+      );
     } else {
       //写真を変更したときにもともと投稿してあった写真の表示をけす。
       return Container();
