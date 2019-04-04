@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cos/Image_url.dart';
 import 'package:flutter_cos/main.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
@@ -141,7 +142,8 @@ class _PostPageState extends State<PostPage> {
                         _allPostsReference.delete();
                         _userPostsReference.delete();
                         Navigator.pop(context);
-                      },
+                        Navigator.pop(context);
+                },
               )
             ],
           ),
@@ -245,8 +247,6 @@ class _PostPageState extends State<PostPage> {
                       ],
                     ),
                   ]),
-
-//
                   SizedBox(height: 15),
 
                   //投稿ボタン
@@ -257,7 +257,6 @@ class _PostPageState extends State<PostPage> {
                       color: Colors.blue,
                       onPressed: () {
                         if (_formKey.currentState.validate()) {
-                          //
                           if (_data.url == null && _imageFile == null) {
                             return Fluttertoast.showToast(msg: "写真を選択してね！");
                           }
@@ -269,6 +268,11 @@ class _PostPageState extends State<PostPage> {
                               _allPostsReference, _userPostsReference);
 
                           Navigator.pop(context);
+
+                          //編集時の処理。編集を更新させるために二回戻らせている
+                          if (widget.document != null) {
+                            Navigator.pop(context);
+                          }
                         }
                       })
                 ],
@@ -296,46 +300,47 @@ class _PostPageState extends State<PostPage> {
 
       //他でも使える形式に変更している。
       // widget.setImage(image);
-      Navigator.pop(context);
+     // Navigator.pop(context);
     });
   }
 
-//写真を追加するボタンを押されたとき呼ばれる処理。使う写真を
-  void _openImagePicker(BuildContext context) {
-    showModalBottomSheet(
-        context: context,
-        builder: (BuildContext context) {
-          return Container(
-            height: 200.0,
-            padding: EdgeInsets.all(10.0),
-            child: Column(children: [
-              Text(
-                'Pick an Image',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              SizedBox(
-                height: 10.0,
-              ),
-              FlatButton(
-                textColor: Theme.of(context).primaryColor,
-                child: Text('Use Camera'),
-                onPressed: () {
-                  //カメラが起動する
-                  _getImage(context, ImageSource.camera);
-                },
-              ),
-              FlatButton(
-                textColor: Theme.of(context).primaryColor,
-                child: Text('Use Gallery'),
-                onPressed: () {
-                  //ギャラリーが表示される
-                  _getImage(context, ImageSource.gallery);
-                },
-              )
-            ]),
-          );
-        });
-  }
+//写真を追加するボタンを押されたとき呼ばれる処理。
+  //iphoneではカメラ起動できないためコメントアウト
+//  void _openImagePicker(BuildContext context) {
+//    showModalBottomSheet(
+//        context: context,
+//        builder: (BuildContext context) {
+//          return Container(
+//            height: 200.0,
+//            padding: EdgeInsets.all(10.0),
+//            child: Column(children: [
+//              Text(
+//                'Pick an Image',
+//                style: TextStyle(fontWeight: FontWeight.bold),
+//              ),
+//              SizedBox(
+//                height: 10.0,
+//              ),
+//              FlatButton(
+//                textColor: Theme.of(context).primaryColor,
+//                child: Text('Use Camera'),
+//                onPressed: () {
+//                  //カメラが起動する
+//                  _getImage(context, ImageSource.camera);
+//                },
+//              ),
+//              FlatButton(
+//                textColor: Theme.of(context).primaryColor,
+//                child: Text('Use Gallery'),
+//                onPressed: () {
+//                  //ギャラリーが表示される
+//                  _getImage(context, ImageSource.gallery);
+//                },
+//              )
+//            ]),
+//          );
+//        });
+//  }
 
   Widget addimageButton() {
     //枠線、アイコン、テキストの色
@@ -351,7 +356,9 @@ class _PostPageState extends State<PostPage> {
           ),
           onPressed: () {
             //写真をギャラリーから選ぶかカメラで今とるかの選択画面を表示
-            _openImagePicker(context);
+            //_openImagePicker(context);
+
+            _getImage(context, ImageSource.gallery);
           },
           child: Row(
             //中心に配置
@@ -365,10 +372,10 @@ class _PostPageState extends State<PostPage> {
               SizedBox(
                 width: 5.0,
               ),
-              Text(
-                'Add Image',
-                style: TextStyle(color: buttonColor),
-              )
+//              Text(
+//                'Add Image',
+//                style: TextStyle(color: buttonColor),
+//              )
             ],
           ),
         ),

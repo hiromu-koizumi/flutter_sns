@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_cos/login.dart';
 import 'dart:async';
 
+import 'package:uuid/uuid.dart';
+
 uploadFavorite(document) async {
   var _savedDocumentID;
 
@@ -13,7 +15,9 @@ uploadFavorite(document) async {
       .collection("favorite")
       .where("documentId", isEqualTo: document.documentID)
       .snapshots()
-      .listen((data) => data.documents.forEach((doc) =>
+//      .listen((data) => _savedDocumentID = data.documents[0]["documentId"]);
+  //上のコードで十分なはずだがエラー出る。上も一応動く。forEach使う必要ない
+  .listen((data) => data.documents.forEach((doc) =>
 
           //空の時nullに上書きされない
           _savedDocumentID = doc["documentId"]));
@@ -43,11 +47,15 @@ uploadFavorite(document) async {
   //削除できるようにユーザーIdを指定している
       .document(firebaseUser.uid);
 
+  //noticeに既読したことを保存するためにidが必要
+  final String uuid = Uuid().v1();
+  final id = uuid;
+
   _noticeFavoriteRef = Firestore.instance
       .collection('users')
       .document(document['userId'])
       .collection("notice")
-      .document();
+      .document(id);
 
 
   //処理を1秒遅らせている。遅らせないとsavedDocumentIDが更新される前にこちらの処理をしてしまう。
@@ -72,6 +80,7 @@ uploadFavorite(document) async {
         "documentId": document.documentID,
         "userId" : firebaseUser.uid,
         "time": DateTime.now(),
+        "id": id,
 
         //favoriteとフォローを識別するためにつけている
         "favorite": "fav",

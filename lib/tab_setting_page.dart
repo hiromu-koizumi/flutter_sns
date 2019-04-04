@@ -79,7 +79,6 @@ class _TabSettingPageState extends State<TabSettingPage> {
           }),
     );
   }
-
   _followingFollowersName(BuildContext context, DocumentSnapshot document) {
     return Container(
         margin: const EdgeInsets.all(15.0),

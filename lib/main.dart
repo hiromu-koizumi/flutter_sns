@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cos/Image_url.dart';
 import 'package:flutter_cos/login.dart';
 import 'package:flutter_cos/my_page.dart';
 import 'package:flutter_cos/notice_page.dart';
@@ -39,10 +40,8 @@ class BottomBar extends StatefulWidget {
 
 //下タブ
 class _BottomBarState extends State<BottomBar> {
-
   @override
   build(BuildContext context) {
-
     return CupertinoTabScaffold(
       tabBar: CupertinoTabBar(
         items: <BottomNavigationBarItem>[
@@ -66,6 +65,7 @@ class _BottomBarState extends State<BottomBar> {
       ),
       tabBuilder: (BuildContext context, int index) {
         assert(index >= 0 && index <= 3);
+        print(index);
         return CupertinoTabView(
           builder: (BuildContext context) {
             switch (index) {
@@ -75,7 +75,6 @@ class _BottomBarState extends State<BottomBar> {
                   //defaultTitle: 'Colors',
                 );
                 break;
-              // Navigator.pop(context);
               case 1:
                 return CupertinoTabView(
                   builder: (BuildContext context) => SearchPage(),
@@ -85,6 +84,7 @@ class _BottomBarState extends State<BottomBar> {
               case 2:
                 return CupertinoTabView(
                   builder: (BuildContext context) => NoticePage(),
+                  // print('aaa');
                   //defaultTitle: 'Colors',
                 );
                 break;
@@ -109,12 +109,11 @@ class TimeLine extends StatefulWidget {
 }
 
 class _TimeLineState extends State<TimeLine> //上タブのために必要
-    with SingleTickerProviderStateMixin {
-
+    with
+        SingleTickerProviderStateMixin {
   final List<Tab> tabs = <Tab>[
     Tab(text: '新着'),
     Tab(text: 'フォロー'),
-
   ];
   TabController _tabController;
 
@@ -138,78 +137,46 @@ class _TimeLineState extends State<TimeLine> //上タブのために必要
 //    });
   }
 
+  //List<DocumentSnapshot> posts = [];
+
   Widget build(BuildContext context) {
 
-    //_tabController = TabController(vsync: this, length: tabs.length);
+
 //    Firestore.instance
-//        .collection('users')
-//        .document(firebaseUser.uid)
-//        .collection("tabs")
+//        .collection('posts')
+//        .orderBy("documentId")
+//        .startAfter(['00418ca0-3260-11e9-f140-b5d27a76ae0f'])
+//        .limit(10)
 //        .snapshots()
-//        .listen((data) =>
-//        data.documents.forEach((doc) => tabs.add(Tab(text: doc["tab"]))));
-//    print(tabs);
+//        .listen((data) => data.documents.forEach((doc) =>
+//
+//            print("iiiiiiiiiiiiuuuuu${doc["comment"]}")));
+//
+
     return Scaffold(
       appBar: AppBar(
         actions: <Widget>[
-      IconButton(
-      icon: Icon(Icons.add_a_photo),
-      onPressed: () {
-        print("mypage");
+          IconButton(
+            icon: Icon(Icons.add_a_photo),
+            onPressed: () {
+              print("mypage");
 
-        //画面遷移
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-              settings: const RouteSettings(name: "/new"),
-              builder: (BuildContext context) =>
-                  PostPage(null) //null 編集機能付けるのに必要っぽい
+              //画面遷移
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    settings: const RouteSettings(name: "/new"),
+                    builder: (BuildContext context) =>
+                        PostPage(null) //null 編集機能付けるのに必要っぽい
+                    ),
+              );
+            },
           ),
-        );
-      },
-    ),
-
-    ],
+        ],
         title: TabBar(
           controller: _tabController,
           tabs: tabs,
-
-
         ),
-        //actions: <Widget>[
-
-//          IconButton(
-//            icon: Icon(Icons.add_a_photo),
-//            onPressed: () {
-//              print("mypage");
-//
-//              //画面遷移
-//              Navigator.push(
-//                context,
-//                MaterialPageRoute(
-//                    settings: const RouteSettings(name: "/new"),
-//                    builder: (BuildContext context) =>
-//                        PostPage(null) //null 編集機能付けるのに必要っぽい
-//                    ),
-//              );
-//
-//            },
-//          ),
-
-//          IconButton(
-//            icon: Icon(Icons.account_circle),
-//            onPressed: () {
-//              print("mypage");
-//              //画面遷移
-//              Navigator.push(
-//                context,
-//                MaterialPageRoute(
-//                    settings: const RouteSettings(name: "/myPage"),
-//                    builder: (BuildContext context) => MyPage()),
-//              );
-//            },
-//          )
-        //  ],
       ),
 
       //上タブ表示させる処理
@@ -222,6 +189,22 @@ class _TimeLineState extends State<TimeLine> //上タブのために必要
     );
   }
 
+  dodo(document){
+
+    Firestore.instance
+        .collection('posts')
+        .orderBy("documentId")
+        .startAfter([document['documentId']])
+        .limit(3)
+        .snapshots();
+//        .listen((data) => data.documents.forEach((doc) =>
+//
+//    //空の時nullに上書きされない
+//    // print("${doc["comment"]}")
+//    print("iiiiiiiiiiiiuuuuu${doc["comment"]}")));
+
+  }
+
   //上タブの表示処理
   Widget createTab(Tab tab) {
     switch (tab.text) {
@@ -229,29 +212,17 @@ class _TimeLineState extends State<TimeLine> //上タブのために必要
         return Padding(
           padding: const EdgeInsets.only(top: 12.0),
           child: StreamBuilder<QuerySnapshot>(
+              stream: dodo(null) ,
 
-              //uidはユーザーの情報を取得する。firebaseUserにはログインしたユーザーが格納されている。だからここではログインしたユーザーの情報を取得している。
-              //stream: Firestore.instance.collection('users').document(firebaseUser.uid).collection("transaction").snapshots(),
-
-              //orderByで新しく投稿したものを上位に表示させている。投稿に保存されているtimeを見て判断している.
-              stream: Firestore.instance
-                  .collection('posts')
-                  .orderBy("time", descending: true)
-                  .limit(10)
-                  .snapshots(),
+//              Firestore.instance
+//                  .collection('posts')
+//                  //.orderBy("time", descending: true)
+//                  .orderBy("documentId")
+//                  .limit(3)
+//                  .snapshots(),
               builder: (BuildContext context,
                   AsyncSnapshot<QuerySnapshot> snapshot) {
                 if (!snapshot.hasData) return const Text('Loading...');
-//                return ListView.builder(
-//                  //データをいくつ持ってくるかの処理
-//                  itemCount: snapshot.data.documents.length,
-//                  padding: const EdgeInsets.only(top: 10.0),
-//
-//                  //投稿を表示する処理にデータを送っている
-//                  itemBuilder: (context, index) =>
-//                      _buildListItem(context, snapshot.data.documents[index]),
-//                );
-
                 return CustomScrollView(
                   slivers: <Widget>[
                     SliverStaggeredGrid.countBuilder(
@@ -259,9 +230,15 @@ class _TimeLineState extends State<TimeLine> //上タブのために必要
                       mainAxisSpacing: 4.0,
                       crossAxisSpacing: 4.0,
                       itemBuilder: (context, index) {
+
+                        if(index == 2){
+                          dodo(snapshot.data.documents[2]);
+                        }
+
                         DocumentSnapshot documentSnapshot =
                             snapshot.data.documents[index];
-                        return _buildListItem(context, documentSnapshot);
+                        print(index);
+                        return _buildListItem(context, documentSnapshot, index);
                       },
                       staggeredTileBuilder: (int index) =>
                           const StaggeredTile.fit(1),
@@ -300,7 +277,7 @@ class _TimeLineState extends State<TimeLine> //上タブのために必要
                       itemBuilder: (context, index) {
                         DocumentSnapshot documentSnapshot =
                             snapshot.data.documents[index];
-                        return _buildListItem(context, documentSnapshot);
+                        return _buildListItem(context, documentSnapshot, index);
                       },
                       staggeredTileBuilder: (int index) =>
                           const StaggeredTile.fit(1),
@@ -317,44 +294,34 @@ class _TimeLineState extends State<TimeLine> //上タブのために必要
   bool favorite;
 
   //投稿表示する処理
-  Widget _buildListItem(BuildContext context, DocumentSnapshot document) {
-    return InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-                settings: const RouteSettings(name: "/postDetails"),
+  Widget _buildListItem(
+      BuildContext context, DocumentSnapshot document, index) {
+    return Column(
+      children: <Widget>[
+        InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    settings: const RouteSettings(name: "/postDetails"),
 
-                //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
-                builder: (BuildContext context) => PostDetails(document)),
-          );
-        },
-        child: Card(
-          //写真表示
-          child: ImageUrl(imageUrl: document['url']),
-        ));
-  }
-}
-
-//urlから画像を表示する処理
-class ImageUrl extends StatelessWidget {
-  final String imageUrl;
-
-  ImageUrl({this.imageUrl});
-
-  @override
-  Widget build(BuildContext context) {
-//            return Image.network(
-//      //横幅がが長くならない
-//      imageUrl, width: 600, height: 300,
-//    );
-    return Container(
-        child: ClipRRect(
-      borderRadius: BorderRadius.circular(12.0),
-      child: Image.network(
-        //横幅がが長くならない
-        imageUrl, fit: BoxFit.cover,
-      ),
-    ));
+                    //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
+                    builder: (BuildContext context) => PostDetails(document)),
+              );
+            },
+            child: Card(
+              //写真表示
+              child: ImageUrl(imageUrl: document['url']),
+            )),
+        index == 2 ? Center(
+          child: new Container(
+            margin: const EdgeInsets.only(top: 8.0,bottom: 50),
+            width: 32.0,
+            height: 32.0,
+            child: const CircularProgressIndicator(),
+          ),
+        ): Text('')
+      ],
+    );
   }
 }

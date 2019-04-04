@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cos/Image_url.dart';
 import 'package:flutter_cos/login.dart';
 import 'package:flutter_cos/main.dart';
 import 'package:flutter_cos/post_details.dart';
@@ -299,74 +300,7 @@ class _UserPageState extends State<UserPages> {
               userProfile(),
             ],
           ),
-//          child: Row(
-//            children: <Widget>[
-//              InkWell(
-//                  onTap: () {
-//                    print('photoChange');
-//                  },
-//                  // child: Expanded(
-//                  child: userProfile()),
-//              Expanded(
-//                child: Column(
-//                  //crossAxisAlignment: CrossAxisAlignment.start,
-//                  mainAxisAlignment: MainAxisAlignment.center,
-//
-//                  children: <Widget>[
-//                    Padding(
-//                        padding: const EdgeInsets.only(left: 50, right: 50),
-//                        child: Column(children: <Widget>[
-//                          Row(
-//                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                            children: <Widget>[
-//                              InkWell(
-//                                onTap: () {
-//                                  Navigator.push(
-//                                      context,
-//                                      MaterialPageRoute(
-//                                          settings: const RouteSettings(
-//                                              name: "/FollowPage"),
-//
-//                                          //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
-//                                          builder: (BuildContext context) =>
-//                                              UserFollowPage(widget.userId)));
-//                                },
-//                                child: Column(
-//                                  children: <Widget>[
-//                                    Text('フォロー'),
-//                                    _followingNumber()
-//                                  ],
-//                                ),
-//                              ),
-//                              InkWell(
-//                                onTap: () {
-//                                  Navigator.push(
-//                                      context,
-//                                      MaterialPageRoute(
-//                                          settings: const RouteSettings(
-//                                              name: "/FollowPage"),
-//
-//                                          //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
-//                                          builder: (BuildContext context) =>
-//                                              UserFollowPage(widget.userId)));
-//                                },
-//                                child: Column(
-//                                  children: <Widget>[
-//                                    Text('フォロワー'),
-//                                    _followersNumber()
-//                                  ],
-//                                ),
-//                              ),
-//                            ],
-//                          ),
-//                          followButton(
-//                              _myFollowReference, _othersFollowReference,_noticeFollowRef)
-//                        ])),
-//                  ],
-//                ),
-//              ),
-//            ],
-//          ),
+
         )));
   }
 

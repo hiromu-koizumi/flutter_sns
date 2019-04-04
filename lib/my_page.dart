@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cos/Image_url.dart';
 import 'package:flutter_cos/follow_page.dart';
 import 'package:flutter_cos/login.dart';
 import 'package:flutter_cos/main.dart';

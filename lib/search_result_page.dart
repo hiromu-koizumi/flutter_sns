@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cos/Image_url.dart';
 import 'package:flutter_cos/login.dart';
+import 'package:flutter_cos/main.dart';
 import 'package:flutter_cos/my_page.dart';
 
 //ユーザー登録
@@ -39,7 +41,7 @@ class _SearchResultPageState extends State<SearchResultPage>
   void initState() {
     super.initState();
     _tabController = TabController(vsync: this, length: tabs.length);
-    print(searchWords.text);
+    print(searchWords);
   }
 
 
@@ -77,7 +79,7 @@ class _SearchResultPageState extends State<SearchResultPage>
             //orderByで新しく投稿したものを上位に表示させている。投稿に保存されているtimeを見て判断している.
               stream: Firestore.instance
               .collection('posts')
-              .where('tag',arrayContains: searchWords.text)
+              .where('tag',arrayContains: searchWords)
                   .orderBy("time", descending: true)
                   .snapshots(),
               builder: (BuildContext context,
@@ -111,7 +113,7 @@ class _SearchResultPageState extends State<SearchResultPage>
             //followしている人の情報を_followingFollowersNameに送る。_followingFollowersNameでは、その情報からユーザーIDを取り出し、IDを使いユーザーネームを取り出し表示している
               stream: Firestore.instance
                   .collection('users')
-                  .where('userName',isEqualTo: searchWords.text)
+                  .where('userName',isEqualTo: searchWords)
                   .snapshots(),
               builder: (BuildContext context,
                   AsyncSnapshot<QuerySnapshot> snapshot) {
@@ -202,25 +204,25 @@ class _SearchResultPageState extends State<SearchResultPage>
 }
 
 //urlから画像を表示する処理
-class ImageUrl extends StatelessWidget {
-  final String imageUrl;
-
-  ImageUrl({this.imageUrl});
-
-  @override
-  Widget build(BuildContext context) {
-//            return Image.network(
-//      //横幅がが長くならない
-//      imageUrl, width: 600, height: 300,
+//class ImageUrl extends StatelessWidget {
+//  final String imageUrl;
+//
+//  ImageUrl({this.imageUrl});
+//
+//  @override
+//  Widget build(BuildContext context) {
+////            return Image.network(
+////      //横幅がが長くならない
+////      imageUrl, width: 600, height: 300,
+////    );
+//    return Container(
+//        child: ClipRRect(
+//          borderRadius: BorderRadius.circular(12.0),
+//          child: Image.network(
+//            //横幅がが長くならない
+//            imageUrl,fit: BoxFit.cover,
+//          ),
+//        )
 //    );
-    return Container(
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12.0),
-          child: Image.network(
-            //横幅がが長くならない
-            imageUrl,fit: BoxFit.cover,
-          ),
-        )
-    );
-  }
-}
+//  }
+//}

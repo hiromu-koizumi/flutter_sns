@@ -73,7 +73,7 @@ class _SearchPageState extends State<SearchPage> {
                   MaterialPageRoute(
                       settings: const RouteSettings(name: "/new"),
                       builder: (BuildContext context) =>
-                          SearchResultPage(_controller) //null 編集機能付けるのに必要っぽい
+                          SearchResultPage(_controller.text)
                       ),
                 );
               },
@@ -94,7 +94,7 @@ class _SearchPageState extends State<SearchPage> {
                         MaterialPageRoute(
                             settings: const RouteSettings(name: "/new"),
                             builder: (BuildContext context) => SearchResultPage(
-                                _controller) //null 編集機能付けるのに必要っぽい
+                                _controller.text) //null 編集機能付けるのに必要っぽい
                             ),
                       );
                     },

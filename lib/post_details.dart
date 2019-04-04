@@ -1,9 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cos/Image_url.dart';
 import 'package:flutter_cos/favorite.dart';
 import 'package:flutter_cos/login.dart';
 import 'package:flutter_cos/main.dart';
 import 'package:flutter_cos/message_page.dart';
+import 'package:flutter_cos/search_result_page.dart';
 import 'package:flutter_cos/user_page.dart';
 
 //投稿をタッチすると表示される画面
@@ -87,19 +89,35 @@ class _PostDetailsState extends State<PostDetails> {
                         children: <Widget>[
                           Row(
                               children: _data.tagList
-                                  .map((item) => Container(
-                                      decoration: ShapeDecoration(
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.all(
-                                            Radius.circular(5.0),
-                                          ),
-                                        ),
-                                        color: Colors.black12,
-                                      ),
-                                      margin:
-                                          EdgeInsets.only(right: 5, left: 5),
-                                      padding: EdgeInsets.all(5),
-                                      child: Text(item)))
+                                  .map((item) => InkWell(
+                                          onTap: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                  settings: const RouteSettings(
+                                                      name: "/postDetails"),
+
+                                                  //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
+                                                  builder: (BuildContext
+                                                          context) =>
+                                                      SearchResultPage(item)),
+                                            );
+                                          },
+                                          child: Container(
+                                              decoration: ShapeDecoration(
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.all(
+                                                    Radius.circular(5.0),
+                                                  ),
+                                                ),
+                                                color: Colors.black12,
+                                              ),
+                                              margin: EdgeInsets.only(
+                                                  right: 5, left: 5),
+                                              padding: EdgeInsets.all(5),
+                                              child: Text(item)))
+                                      )
                                   .toList()),
                           favoriteButton(),
                           FlatButton(
@@ -189,15 +207,16 @@ class _PostDetailsState extends State<PostDetails> {
 //                          fit: BoxFit.fill,
 //                          image: new NetworkImage(
 //                              snapshot.data.documents[0]['photoUrl'])))),
-          Material(
-          child: Image.network(
-              ( snapshot.data.documents[0]['photoUrl']),
-          width: 40,
-          height: 40,
-          fit: BoxFit.cover,
-          ),borderRadius: BorderRadius.all(Radius.circular(20.0)),
-          clipBehavior: Clip.hardEdge,
-          ),
+              Material(
+                child: Image.network(
+                  (snapshot.data.documents[0]['photoUrl']),
+                  width: 40,
+                  height: 40,
+                  fit: BoxFit.cover,
+                ),
+                borderRadius: BorderRadius.all(Radius.circular(20.0)),
+                clipBehavior: Clip.hardEdge,
+              ),
               SizedBox(
                 width: 20.0,
               ),

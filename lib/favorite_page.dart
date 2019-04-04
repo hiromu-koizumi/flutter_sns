@@ -66,36 +66,41 @@ class _MyFavoritePageState extends State<MyFavoritePage> {
 
           //ユーザー登録をしていない人としてる人で処理を分けている。エラーでないように
           if (snapshot.data.documents.length == 0) {
-            return Text('未登録さんがいいねしました');
+            return Padding(
+                padding: EdgeInsets.only(top: 5, left: 5),
+                child: Text('未登録さんがいいねしました'));
           } else {
-            return InkWell(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        settings: const RouteSettings(name: "/userPage"),
-                        builder: (BuildContext context) =>
-                            //表示されている名前のユーザーIDをUserPageに渡している
-                            UserPage(document['userId'])),
-                  );
-                },
-                child: Row(
-                  children: <Widget>[
-                    Material(
-                      child: Image.network(
-                        ( snapshot.data.documents[0]['photoUrl']),
-                        width: 40,
-                        height: 40,
-                        fit: BoxFit.cover,
-                      ),borderRadius: BorderRadius.all(Radius.circular(20.0)),
-                      clipBehavior: Clip.hardEdge,
-                    ),
-                    SizedBox(
-                      width: 20.0,
-                    ),
-                    Text(snapshot.data.documents[0]['userName']),
-                  ],
-                ));
+            return Padding(
+                padding: EdgeInsets.only(top: 5, left: 5),
+                child: InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            settings: const RouteSettings(name: "/userPage"),
+                            builder: (BuildContext context) =>
+                                //表示されている名前のユーザーIDをUserPageに渡している
+                                UserPage(document['userId'])),
+                      );
+                    },
+                    child: Row(
+                      children: <Widget>[
+                        Material(
+                          child: Image.network(
+                            (snapshot.data.documents[0]['photoUrl']),
+                            width: 40,
+                            height: 40,
+                            fit: BoxFit.cover,
+                          ),
+                          borderRadius: BorderRadius.all(Radius.circular(20.0)),
+                          clipBehavior: Clip.hardEdge,
+                        ),
+                        SizedBox(
+                          width: 20.0,
+                        ),
+                        Text(snapshot.data.documents[0]['userName']),
+                      ],
+                    )));
             //}
             // Text(snapshot.data.documents[0]['userName']);
           }
