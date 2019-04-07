@@ -2,30 +2,22 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cos/Image_url.dart';
-import 'package:flutter_cos/login.dart';
-import 'package:flutter_cos/main.dart';
-import 'package:flutter_cos/my_page.dart';
-
-//ユーザー登録
 import 'package:flutter_cos/post_details.dart';
-import 'package:flutter_cos/search_page.dart';
 import 'package:flutter_cos/user_page.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 class SearchResultPage extends StatefulWidget {
-
   SearchResultPage(this.searchWords);
 
   final searchWords;
 
   @override
   _SearchResultPageState createState() => _SearchResultPageState(searchWords);
-
 }
 
-class _SearchResultPageState extends State<SearchResultPage>
-//上タブのために必要
-    with SingleTickerProviderStateMixin {
+class _SearchResultPageState extends State<SearchResultPage> //上タブのために必要
+    with
+        SingleTickerProviderStateMixin {
   final List<Tab> tabs = <Tab>[
     Tab(text: '投稿'),
     Tab(text: 'ユーザー'),
@@ -43,7 +35,6 @@ class _SearchResultPageState extends State<SearchResultPage>
     _tabController = TabController(vsync: this, length: tabs.length);
     print(searchWords);
   }
-
 
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,17 +60,11 @@ class _SearchResultPageState extends State<SearchResultPage>
     switch (tab.text) {
       case '投稿':
         return Padding(
-
-          padding: const EdgeInsets.only(top: 12.0),
+          padding: const EdgeInsets.only(bottom: 40.0),
           child: StreamBuilder<QuerySnapshot>(
-
-            //uidはユーザーの情報を取得する。firebaseUserにはログインしたユーザーが格納されている。だからここではログインしたユーザーの情報を取得している。
-            //stream: Firestore.instance.collection('users').document(firebaseUser.uid).collection("transaction").snapshots(),
-
-            //orderByで新しく投稿したものを上位に表示させている。投稿に保存されているtimeを見て判断している.
               stream: Firestore.instance
-              .collection('posts')
-              .where('tag',arrayContains: searchWords)
+                  .collection('posts')
+                  .where('tag', arrayContains: searchWords)
                   .orderBy("time", descending: true)
                   .snapshots(),
               builder: (BuildContext context,
@@ -93,10 +78,11 @@ class _SearchResultPageState extends State<SearchResultPage>
                       crossAxisSpacing: 4.0,
                       itemBuilder: (context, index) {
                         DocumentSnapshot documentSnapshot =
-                        snapshot.data.documents[index];
+                            snapshot.data.documents[index];
                         return _tagSearchResult(context, documentSnapshot);
                       },
-                      staggeredTileBuilder: (int index) => const StaggeredTile.fit(1),
+                      staggeredTileBuilder: (int index) =>
+                          const StaggeredTile.fit(1),
                       itemCount: snapshot.data.documents.length,
                     ),
                   ],
@@ -106,14 +92,13 @@ class _SearchResultPageState extends State<SearchResultPage>
         break;
       case 'ユーザー':
         return Padding(
-
           padding: const EdgeInsets.only(top: 12.0),
           child: StreamBuilder<QuerySnapshot>(
 
-            //followしている人の情報を_followingFollowersNameに送る。_followingFollowersNameでは、その情報からユーザーIDを取り出し、IDを使いユーザーネームを取り出し表示している
+              //followしている人の情報を_followingFollowersNameに送る。_followingFollowersNameでは、その情報からユーザーIDを取り出し、IDを使いユーザーネームを取り出し表示している
               stream: Firestore.instance
                   .collection('users')
-                  .where('userName',isEqualTo: searchWords)
+                  .where('userName', isEqualTo: searchWords)
                   .snapshots(),
               builder: (BuildContext context,
                   AsyncSnapshot<QuerySnapshot> snapshot) {
@@ -124,105 +109,63 @@ class _SearchResultPageState extends State<SearchResultPage>
                   padding: const EdgeInsets.only(top: 10.0),
 
                   //投稿を表示する処理にデータを送っている
-                  itemBuilder: (context, index) =>
-                      _nameSearchResult(context, snapshot.data.documents[index]),
+                  itemBuilder: (context, index) => _nameSearchResult(
+                      context, snapshot.data.documents[index]),
                 );
-
               }),
         );
         break;
     }
   }
 
-  bool favorite;
-
   Widget _nameSearchResult(BuildContext context, DocumentSnapshot document) {
     return InkWell(
         onTap: () {
           Navigator.push(
-            context,
-            MaterialPageRoute(
+              context,
+              MaterialPageRoute(
                 settings: const RouteSettings(name: "/userPage"),
                 builder: (BuildContext context) =>
-                //表示されている名前のユーザーIDをUserPageに渡している
-                UserPage(document['userId']),
-          )
-          );
+                    //表示されている名前のユーザーIDをUserPageに渡している
+                    UserPage(document['userId']),
+              ));
         },
         child: Row(
           children: <Widget>[
             Material(
               child: Image.network(
-                ( document['photoUrl']),
+                (document['photoUrl']),
                 width: 40,
                 height: 40,
                 fit: BoxFit.cover,
-              ),borderRadius: BorderRadius.all(Radius.circular(20.0)),
+              ),
+              borderRadius: BorderRadius.all(Radius.circular(20.0)),
               clipBehavior: Clip.hardEdge,
             ),
-//            Container(
-//                width: 40.0,
-//                height: 40.0,
-//                decoration: new BoxDecoration(
-//                    shape: BoxShape.circle,
-//                    image: new DecorationImage(
-//                        fit: BoxFit.fill,
-//                        image: new NetworkImage(
-//                            document['photoUrl'])))),
             SizedBox(
               width: 20.0,
             ),
             Text(document['userName']),
           ],
         ));
-
-
   }
 
-
-    //投稿表示する処理
+  //投稿表示する処理
   Widget _tagSearchResult(BuildContext context, DocumentSnapshot document) {
-
     return InkWell(
-        onTap : (){
+        onTap: () {
           Navigator.push(
             context,
             MaterialPageRoute(
                 settings: const RouteSettings(name: "/postDetails"),
 
                 //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
-                builder: (BuildContext context) =>
-                    PostDetails(document)),
+                builder: (BuildContext context) => PostDetails(document)),
           );
         },
         child: Card(
           //写真表示
           child: ImageUrl(imageUrl: document['url']),
-        )
-    );
+        ));
   }
 }
-
-//urlから画像を表示する処理
-//class ImageUrl extends StatelessWidget {
-//  final String imageUrl;
-//
-//  ImageUrl({this.imageUrl});
-//
-//  @override
-//  Widget build(BuildContext context) {
-////            return Image.network(
-////      //横幅がが長くならない
-////      imageUrl, width: 600, height: 300,
-////    );
-//    return Container(
-//        child: ClipRRect(
-//          borderRadius: BorderRadius.circular(12.0),
-//          child: Image.network(
-//            //横幅がが長くならない
-//            imageUrl,fit: BoxFit.cover,
-//          ),
-//        )
-//    );
-//  }
-//}

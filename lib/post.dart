@@ -143,7 +143,7 @@ class _PostPageState extends State<PostPage> {
                         _userPostsReference.delete();
                         Navigator.pop(context);
                         Navigator.pop(context);
-                },
+                      },
               )
             ],
           ),
@@ -298,12 +298,13 @@ class _PostPageState extends State<PostPage> {
         photoEditAdd = true;
       });
 
-      //他でも使える形式に変更している。
+      //他でも使える形式に変更している。後々必要になるかも。
       // widget.setImage(image);
-     // Navigator.pop(context);
+      // Navigator.pop(context);
     });
   }
 
+  //後々使うかもしれないから消さないでー
 //写真を追加するボタンを押されたとき呼ばれる処理。
   //iphoneではカメラ起動できないためコメントアウト
 //  void _openImagePicker(BuildContext context) {
@@ -411,9 +412,6 @@ class _PostPageState extends State<PostPage> {
       _allPostsReference, _userPostsReference) async {
     //保存する写真の名前を変更するためにUUIDを生成している
     final String uuid = Uuid().v1();
-
-    //DocumentReference _mainReference;
-    //_mainReference = Firestore.instance.collection('users').document(firebaseUser.uid).collection("transaction").document();
 
     //写真に変更を加えたときの処理
     if (photoEditAdd == true) {

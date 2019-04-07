@@ -41,35 +41,17 @@ class _SettingPageState extends State<SettingPage> {
   @override
   Widget build(BuildContext context) {
     DocumentReference _userReference;
-//    _userReference = Firestore.instance
-//        .collection('users')
-//        .document(firebaseUser.uid)
-//        .collection("profiles")
-//        .document();
-
     _userReference = Firestore.instance
         .collection('users')
         .document(firebaseUser.uid);
 
-   // if (widget.userInformation != null) {
-   //   if (_data.userName == null && _data.profile == null) {
+
         _data.userName = widget.userInformation['userName'];
         _data.profile = widget.userInformation['profile'];
         _data.url = widget.userInformation['photoUrl'];
         _data.imagePath = widget.userInformation['imagePath'];
         _data.searchKey = widget.userInformation['searchKey'];
         _data.userId = widget.userInformation['userId'];
-       // _data.makeUserID = widget.userInformation['makeUserId'];
-        print('${_data.userName}');
-      //}
-
-      //編集ボタン押したときのデータベースの参照先
-//      _userReference = Firestore.instance
-//          .collection('users')
-//          .document(firebaseUser.uid)
-//          .collection("profiles")
-//          .document(widget.userInformation.documentID);
-  //  }
 
     return Scaffold(
         appBar: AppBar(title: Text('設定'), actions: <Widget>[
@@ -105,26 +87,6 @@ class _SettingPageState extends State<SettingPage> {
                         //編集ボタン押した後のコメント欄に元あった文字を表示するのに必要。
                         initialValue: _data.userName,
                       ),
-//                      TextFormField(
-//                        decoration: const InputDecoration(
-//                          hintText: 'ユーザー検索で表示されるために必要です',
-//                          labelText: 'ユーザーID',
-//                        ),
-//
-//                        //投稿ボタンが押されたら処理が始まる
-//                        onSaved: (String value) {
-//                          //valueの中にテキストフィールドに書き込んだ文字が格納されている
-//                          _data.makeUserID = value;
-//                        },
-//                        validator: (value) {
-//                          if (value != "") {
-//                            return 'コメントは必須入力です';
-//                          }
-//                        },
-//
-//                        //編集ボタン押した後のコメント欄に元あった文字を表示するのに必要。
-//                        initialValue: _data.makeUserID,
-//                      ),
 
                       //プロフィールテキストフィールド
                       TextFormField(
@@ -139,13 +101,6 @@ class _SettingPageState extends State<SettingPage> {
                           _data.profile = value;
                         },
 
-                        //投稿ボタンが押されたら処理が始まる
-//                validator: (value) {
-//                  if (value.isEmpty) {
-//                    return 'コメントは必須入力です';
-//                  }
-//                },
-
                         //編集ボタン押した後のコメント欄に元あった文字を表示するのに必要。
                         initialValue: _data.profile,
                       ),
@@ -157,19 +112,13 @@ class _SettingPageState extends State<SettingPage> {
                           textColor: Colors.white,
                           color: Colors.blue,
                           onPressed: () {
-                            //validatorに処理を送っている。_formKeyがついているvalidatorに飛ぶ
-//                      if (_formKey.currentState.validate()) {
+
 //                        //onSavedに処理を送っている。_formKeyがついているOnSavedに飛ぶ
                             _formKey.currentState.save();
                             uploadText(_userReference);
-//
-//                        //firebaseに写真とテキストを保存する処理._mainReferenceは投稿情報を渡している。これを渡さず関数側で投稿情報を作り編集投稿すると編集できず新規投稿をしてしまう。
-//                        uploadImageText(_mainReference);
-
                             Navigator.pop(context);
                           }
 
-                          //画面遷移
 
                           )
                     ]))));
@@ -203,9 +152,6 @@ class _SettingPageState extends State<SettingPage> {
   Future<String> uploadText(_userReference) async {
     //保存する写真の名前を変更するためにUUIDを生成している
     final String uuid = Uuid().v1();
-
-    //DocumentReference _mainReference;
-    //_mainReference = Firestore.instance.collection('users').document(firebaseUser.uid).collection("transaction").document();
 
     //写真に変更を加えたときの処理
     if (photoEditAdd == true) {
@@ -308,8 +254,6 @@ class _SettingPageState extends State<SettingPage> {
             ],
           ),
         ),
-        //編集時以前投稿した写真を表示
-        // imageExistingView(),
         //写真をfirebaseに保存する処理
         imageExistingView(),
         _imageFile == null ? Text('') : enableUpload(),
@@ -370,13 +314,7 @@ class _SettingPageState extends State<SettingPage> {
   //編集時以前投稿した写真表示
   Widget imageExistingView() {
     if (_data.url != null && _imageFile == null) {
-//      return Container(
-//          width: 190.0,
-//          height: 190.0,
-//          decoration: new BoxDecoration(
-//              shape: BoxShape.circle,
-//              image: new DecorationImage(
-//                  fit: BoxFit.fill, image: NetworkImage(_data.url))));
+
       return Material(
         child: Image.network(
           (_data.url),

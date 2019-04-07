@@ -3,18 +3,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cos/Image_url.dart';
 import 'package:flutter_cos/login.dart';
-import 'package:flutter_cos/main.dart';
 import 'package:flutter_cos/post_details.dart';
 import 'package:flutter_cos/user_follow_page.dart';
-import 'dart:math' as math;
 
 //格子状に表示する
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-
-DocumentSnapshot userInformation;
-//FirebaseUser firebaseUser;
-final FirebaseAuth _auth = FirebaseAuth.instance;
 
 class UserPage extends StatelessWidget {
   UserPage(this.userId);
@@ -202,23 +195,26 @@ class _UserPageState extends State<UserPages> {
         //streamが更新されるたびに呼ばれる
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (!snapshot.hasData) return const Text('Loading...');
-          return CustomScrollView(
-            slivers: <Widget>[
-              // makeHeader(_myFollowReference, _othersFollowReference),
-              userProfileHeader(
-                  _myFollowReference, _othersFollowReference, _noticeFollowRef),
-              SliverStaggeredGrid.countBuilder(
-                crossAxisCount: 2,
-                itemBuilder: (context, index) {
-                  DocumentSnapshot documentSnapshot =
-                      snapshot.data.documents[index];
-                  return _userPageList(context, documentSnapshot);
-                },
-                staggeredTileBuilder: (int index) => const StaggeredTile.fit(1),
-                itemCount: snapshot.data.documents.length,
-              ),
-            ],
-          );
+          return Padding(
+              padding: EdgeInsets.only(bottom: 50),
+              child: CustomScrollView(
+                slivers: <Widget>[
+                  // makeHeader(_myFollowReference, _othersFollowReference),
+                  userProfileHeader(_myFollowReference, _othersFollowReference,
+                      _noticeFollowRef),
+                  SliverStaggeredGrid.countBuilder(
+                    crossAxisCount: 2,
+                    itemBuilder: (context, index) {
+                      DocumentSnapshot documentSnapshot =
+                          snapshot.data.documents[index];
+                      return _userPageList(context, documentSnapshot);
+                    },
+                    staggeredTileBuilder: (int index) =>
+                        const StaggeredTile.fit(1),
+                    itemCount: snapshot.data.documents.length,
+                  ),
+                ],
+              ));
         });
   }
 
@@ -242,7 +238,9 @@ class _UserPageState extends State<UserPages> {
                   Expanded(
                       child: Column(
                     children: <Widget>[
-                      SizedBox(height: 15,),
+                      SizedBox(
+                        height: 15,
+                      ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
@@ -300,7 +298,6 @@ class _UserPageState extends State<UserPages> {
               userProfile(),
             ],
           ),
-
         )));
   }
 
@@ -331,7 +328,6 @@ class _UserPageState extends State<UserPages> {
             .snapshots(),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (!snapshot.hasData) return const Text('Loading...');
-          userInformation = snapshot.data.documents[0];
 
           return Flexible(
               child: Column(
@@ -375,7 +371,6 @@ class _UserPageState extends State<UserPages> {
             .snapshots(),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (!snapshot.hasData) return const Text('Loading...');
-          userInformation = snapshot.data.documents[0];
 
           return Material(
             child: Image.network(
@@ -392,34 +387,6 @@ class _UserPageState extends State<UserPages> {
         });
   }
 
-//  Widget userProfile() {
-//    return StreamBuilder<QuerySnapshot>(
-//        stream: Firestore.instance
-//            .collection('users')
-//            .where('userId', isEqualTo: widget.userId)
-//            .snapshots(),
-//        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-//          if (!snapshot.hasData) return const Text('Loading...');
-//          if (snapshot.data.documents.length == 0) return Text('NONAME');
-//          userInformation = snapshot.data.documents[0];
-//
-//          return Column(
-//            children: <Widget>[
-//              Material(
-//                child: Image.network(
-//                  ( snapshot.data.documents[0]['photoUrl']),
-//                  width: 80,
-//                  height: 80,
-//                  fit: BoxFit.cover,
-//                ),borderRadius: BorderRadius.all(Radius.circular(40.0)),
-//                clipBehavior: Clip.hardEdge,
-//              ),
-//              Text(snapshot.data.documents[0]['userName']),
-//            ],
-//          );
-//        });
-//  }
-
   Widget _followingNumber() {
     return StreamBuilder<QuerySnapshot>(
         stream: Firestore.instance
@@ -429,7 +396,6 @@ class _UserPageState extends State<UserPages> {
             .snapshots(),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (!snapshot.hasData) return const Text('Loading...');
-          //userInformation = snapshot.data.documents[0];
 
           return Text('${snapshot.data.documents.length}');
         });
@@ -444,7 +410,6 @@ class _UserPageState extends State<UserPages> {
             .snapshots(),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (!snapshot.hasData) return const Text('Loading...');
-          //userInformation = snapshot.data.documents[0];
 
           return Text('${snapshot.data.documents.length}');
         });

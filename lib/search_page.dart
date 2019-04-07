@@ -56,13 +56,13 @@ class _SearchPageState extends State<SearchPage> {
   Widget build(BuildContext context) {
     return Scaffold(
 
-      //textField以外をタップするとキーボード閉じる機能
-      body: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () {
-      FocusScope.of(context).requestFocus(new FocusNode());
-    },
-     child:  ListView(children: <Widget>[
+        //textField以外をタップするとキーボード閉じる機能
+        body: GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        FocusScope.of(context).requestFocus(new FocusNode());
+      },
+      child: ListView(children: <Widget>[
         Padding(
             padding: const EdgeInsets.all(20.0),
             child: TextField(
@@ -73,8 +73,7 @@ class _SearchPageState extends State<SearchPage> {
                   MaterialPageRoute(
                       settings: const RouteSettings(name: "/new"),
                       builder: (BuildContext context) =>
-                          SearchResultPage(_controller.text)
-                      ),
+                          SearchResultPage(_controller.text)),
                 );
               },
               onChanged: (val) {
@@ -149,17 +148,10 @@ Widget buildResultCard(BuildContext context, data) {
               width: 40,
               height: 40,
               fit: BoxFit.cover,
-            ),borderRadius: BorderRadius.all(Radius.circular(20.0)),
+            ),
+            borderRadius: BorderRadius.all(Radius.circular(20.0)),
             clipBehavior: Clip.hardEdge,
           ),
-//          Container(
-//              width: 40.0,
-//              height: 40.0,
-//              decoration: new BoxDecoration(
-//                  shape: BoxShape.circle,
-//                  image: new DecorationImage(
-//                      fit: BoxFit.fill,
-//                      image: new NetworkImage(data['photoUrl'])))),
           Text(data['userName']),
         ],
       ));

@@ -29,13 +29,6 @@ class _MessagePageState extends State<MessagePage> {
   Widget build(BuildContext context) {
     //scaffoldにしてキーボードを出すと入力欄が上に上がりすぎる
     return Card(
-      // margin: EdgeInsets.only(bottom: 50.0, right: 10.0, left: 10.0),
-
-//        appBar: AppBar(
-//          title: Text('ChatRoom'),
-//        ),
-//        child: Container(
-//           margin: const EdgeInsets.symmetric(horizontal: 8.0),
       child: Column(
         children: <Widget>[
           SizedBox(height: 10),
@@ -56,7 +49,7 @@ class _MessagePageState extends State<MessagePage> {
             child: StreamBuilder<QuerySnapshot>(
                 stream: Firestore.instance
                     .collection('posts')
-                //imagePathとドキュメントIDは同じ
+                    //imagePathとドキュメントIDは同じ
                     .document(widget.document["documentId"])
                     .collection("chat_room")
                     .orderBy("created_at", descending: true)
@@ -116,7 +109,6 @@ class _MessagePageState extends State<MessagePage> {
           ),
         ],
       ),
-      //  )
     );
   }
 
@@ -161,8 +153,6 @@ class _MessagePageState extends State<MessagePage> {
           .collection('posts')
           .document(widget.document.documentID);
 
-
-
       _messageRef.collection("chat_room").add({
         "message": message,
         "created_at": DateTime.now(),
@@ -175,22 +165,22 @@ class _MessagePageState extends State<MessagePage> {
         print(err);
       });
 
-      if(firebaseUser.uid != widget.document['userId']){
-      DocumentReference _noticeMessageRef;
-      _noticeMessageRef = Firestore.instance
-          .collection('users')
-          .document(widget.document['userId'])
-          .collection("notice")
-          .document();
+      if (firebaseUser.uid != widget.document['userId']) {
+        DocumentReference _noticeMessageRef;
+        _noticeMessageRef = Firestore.instance
+            .collection('users')
+            .document(widget.document['userId'])
+            .collection("notice")
+            .document();
 
-      _noticeMessageRef.setData({
-        "documentId": widget.document.documentID,
-        "userId" : firebaseUser.uid,
-        "message": "mes",
-        "url":  widget.document["url"],
-        "time": DateTime.now(),
-      });}
-
+        _noticeMessageRef.setData({
+          "documentId": widget.document.documentID,
+          "userId": firebaseUser.uid,
+          "message": "mes",
+          "url": widget.document["url"],
+          "time": DateTime.now(),
+        });
+      }
     }
   }
 
@@ -212,13 +202,14 @@ class _MessagePageState extends State<MessagePage> {
             .snapshots(),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (!snapshot.hasData) return const Text('Loading...');
-         // userInformation = snapshot.data.documents[0];
+          // userInformation = snapshot.data.documents[0];
 
           //ユーザ登録していない人としている人で処理を分けている。
           if (snapshot.data.documents.length == 0) {
             return Container(
               //margin: EdgeInsets.only(),
-              child: Text('未登録さん'),);
+              child: Text('未登録さん'),
+            );
           } else {
             return InkWell(
                 onTap: () {
@@ -235,11 +226,12 @@ class _MessagePageState extends State<MessagePage> {
                   children: <Widget>[
                     Material(
                       child: Image.network(
-                        ( snapshot.data.documents[0]['photoUrl']),
+                        (snapshot.data.documents[0]['photoUrl']),
                         width: 40,
                         height: 40,
                         fit: BoxFit.cover,
-                      ),borderRadius: BorderRadius.all(Radius.circular(20.0)),
+                      ),
+                      borderRadius: BorderRadius.all(Radius.circular(20.0)),
                       clipBehavior: Clip.hardEdge,
                     ),
                     SizedBox(
@@ -253,89 +245,3 @@ class _MessagePageState extends State<MessagePage> {
         });
   }
 }
-
-//class _MessagePageState extends State<MessagePage> {
-
-//  Widget build(BuildContext context) {
-//    return Scaffold(
-//      appBar: AppBar(
-//        title: const Text("コメント画面"),
-//        actions: <Widget>[
-//          IconButton(
-//            icon: Icon(Icons.exit_to_app),
-//            onPressed: () {
-//              print("login");
-//
-//              //ログイン画面表示
-//              showBasicDialog(context);
-//            },
-//          ),
-//          IconButton(
-//            icon: Icon(Icons.account_circle),
-//            onPressed: () {
-//              print("mypage");
-//              //画面遷移
-//              Navigator.push(
-//                context,
-//                MaterialPageRoute(
-//                    settings: const RouteSettings(name: "/myPage"),
-//                    builder: (BuildContext context) =>
-//                        MyPage()
-//                ),
-//              );
-//            },
-//          )
-//        ],
-//      ),
-//
-//
-//      body: Padding(
-//        padding: const EdgeInsets.all(8.0),
-//        child: StreamBuilder<QuerySnapshot>(
-//
-//          //uidはユーザーの情報を取得する。firebaseUserにはログインしたユーザーが格納されている。だからここではログインしたユーザーの情報を取得している。
-//          //stream: Firestore.instance.collection('users').document(firebaseUser.uid).collection("transaction").snapshots(),
-//
-//
-//          //orderByで新しく投稿したものを上位に表示させている。投稿に保存されているtimeを見て判断している.
-//            stream: Firestore.instance.collection('posts').orderBy("time", descending: true).snapshots(),
-//
-//            builder:
-//                (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-//              if (!snapshot.hasData) return const Text('Loading...');
-//              return ListView.builder(
-//                //データをいくつ持ってくるかの処理
-//                itemCount: snapshot.data.documents.length,
-//                padding: const EdgeInsets.only(top: 10.0),
-//
-//                //投稿を表示する処理にデータを送っている
-//                itemBuilder: (context, index) =>
-//                    _buildListItem(context, snapshot.data.documents[index]),
-//              );
-//            }),
-//
-//      ),
-//
-//    );
-//  }
-//
-//  //投稿表示する処理
-//  Widget _buildListItem(BuildContext context, DocumentSnapshot document) {
-//    return Card(
-//      child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
-//
-//        ListTile(
-//          leading: const Icon(Icons.android),
-//          title: Text(document['comment']),
-//
-//          //substringで表示する時刻を短縮している
-//          subtitle: Text(document['time'].toString().substring(0, 10)),
-//
-//
-//        ),
-//
-//      ]),
-//
-//    );
-//  }
-//}

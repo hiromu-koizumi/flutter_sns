@@ -1,18 +1,13 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cos/Image_url.dart';
 import 'package:flutter_cos/follow_page.dart';
 import 'package:flutter_cos/login.dart';
-import 'package:flutter_cos/main.dart';
 import 'package:flutter_cos/mypost_details.dart';
 import 'package:flutter_cos/post.dart';
 import 'package:flutter_cos/setting.dart';
-import 'package:flutter_cos/tab_setting_page.dart';
-import 'package:flutter_cos/user_profire.dart';
-import 'dart:math' as math;
 
 //格子状に表示する
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
@@ -25,6 +20,140 @@ class MyPages extends StatefulWidget {
 }
 
 class _MyPageState extends State<MyPages> {
+  bool _loading = false;
+  final _myPostList = [];
+  StreamController<List> _postsController = StreamController<List>.broadcast();
+
+  //読み込む投稿がまだあるかチェックするために必要。
+  var _postLoadCheck = 0;
+  final _getPostNumber = 6;
+
+  @override
+  void initState() {
+    super.initState();
+
+    Firestore.instance
+        .collection('users')
+        .document(firebaseUser.uid)
+        .collection('posts')
+        .orderBy("time", descending: true)
+        .limit(_getPostNumber)
+        .snapshots()
+        .listen(
+            (data) => data.documents.forEach((doc) => _myPostList.add(doc)));
+
+    //3秒遅くしないとpostListに投稿が代入できていない
+    Future.delayed(new Duration(seconds: 4), () {
+      _postsController.add(_myPostList);
+      _postLoadCheck = _myPostList.length - _getPostNumber;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (firebaseUser.isAnonymous) {
+      return loginPage(context);
+    } else {
+      return Scaffold(
+          appBar: AppBar(title: Text('マイページ'), actions: <Widget>[
+            IconButton(
+              icon: Icon(Icons.add_a_photo),
+              onPressed: () {
+                print("mypage");
+
+                //画面遷移
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      settings: const RouteSettings(name: "/new"),
+                      builder: (BuildContext context) =>
+                          PostPage(null) //null 編集機能付けるのに必要っぽい
+                      ),
+                );
+              },
+            ),
+            IconButton(
+              icon: Icon(Icons.settings),
+              onPressed: () {
+                //画面遷移
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      settings: const RouteSettings(name: "/setting"),
+                      builder: (BuildContext context) =>
+                          SettingPage(userInformation) //
+                      ),
+                );
+              },
+            ),
+          ]),
+          body: postStream());
+    }
+  }
+
+  fetchMyPosts(document) async {
+    if (_loading) {
+      return null;
+    }
+    _loading = true;
+    Firestore.instance
+        .collection('users')
+        .document(firebaseUser.uid)
+        .collection('posts')
+        .orderBy("time", descending: true)
+        .startAfter([document['time']])
+        .limit(_getPostNumber)
+        .snapshots()
+        .listen(
+            (data) => data.documents.forEach((doc) => _myPostList.add(doc)));
+
+    Future.delayed(new Duration(seconds: 4), () {
+      print('読み込み中');
+      _postsController.add(_myPostList);
+
+      //postLoadCheckがマイナスになった場合もう読み込む投稿がない。
+      _postLoadCheck = _myPostList.length - _getPostNumber;
+      _loading = false;
+    });
+  }
+
+  postStream() {
+    return StreamBuilder(
+        stream: _postsController.stream,
+        //streamが更新されるたびに呼ばれる
+        builder: (BuildContext context, snapshot) {
+          return Padding(
+              padding: EdgeInsets.only(bottom: 50),
+              child: NotificationListener<ScrollNotification>(
+                  onNotification: (ScrollNotification value) {
+                    if (value.metrics.extentAfter == 0.0) {
+                      //画面そこに到達したときの処理
+                      //一番最後に取得した投稿をfetchPostsに送っている。あちらでは、startAfterを使いその投稿より後の投稿を取得している
+                      fetchMyPosts(_myPostList[_myPostList.length - 1]);
+                    }
+                  },
+                  child: CustomScrollView(
+                    slivers: <Widget>[
+                      userProfileHeader(),
+                      SliverStaggeredGrid.countBuilder(
+                        crossAxisCount: 2,
+                        mainAxisSpacing: 4.0,
+                        crossAxisSpacing: 4.0,
+                        itemBuilder: (context, index) {
+                          DocumentSnapshot documentSnapshot =
+                              _myPostList[index];
+
+                          return _myPost(context, documentSnapshot, index);
+                        },
+                        staggeredTileBuilder: (int index) =>
+                            const StaggeredTile.fit(1),
+                        itemCount: _myPostList.length,
+                      ),
+                    ],
+                  )));
+        });
+  }
+
   userProfileHeader() {
     return SliverAppBar(
         expandedHeight: 180.0,
@@ -75,8 +204,6 @@ class _MyPageState extends State<MyPages> {
                                         MyFollowPage()));
                           },
                           child: Column(
-//                              crossAxisAlignment: CrossAxisAlignment.start,
-//                              mainAxisAlignment: MainAxisAlignment.center,
                             children: <Widget>[
                               Text('フォロワー'),
                               followersNumber()
@@ -94,97 +221,39 @@ class _MyPageState extends State<MyPages> {
         )));
   }
 
-  @override
-  Widget build(BuildContext context) {
-    if (firebaseUser.isAnonymous) {
-      return loginPage(context);
-    } else {
-      return Scaffold(
-          appBar: AppBar(title: Text('マイページ'), actions: <Widget>[
-            IconButton(
-              icon: Icon(Icons.add_a_photo),
-              onPressed: () {
-                print("mypage");
-
-                //画面遷移
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      settings: const RouteSettings(name: "/new"),
-                      builder: (BuildContext context) =>
-                          PostPage(null) //null 編集機能付けるのに必要っぽい
-                      ),
-                );
-              },
-            ),
-            IconButton(
-              icon: Icon(Icons.settings),
-              onPressed: () {
-                //画面遷移
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      settings: const RouteSettings(name: "/setting"),
-                      builder: (BuildContext context) =>
-                          SettingPage(userInformation) //
-                      ),
-                );
-              },
-            ),
-          ]),
-          body: postStream());
-    }
-  }
-
-  postStream() {
-    return StreamBuilder<QuerySnapshot>(
-        stream: Firestore.instance
-            .collection('users')
-            .document(firebaseUser.uid)
-            .collection('posts')
-            .orderBy("time", descending: true)
-            .snapshots(),
-
-        //streamが更新されるたびに呼ばれる
-        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          if (!snapshot.hasData) return const Text('Loading...');
-          return CustomScrollView(
-            slivers: <Widget>[
-              userProfileHeader(),
-              SliverStaggeredGrid.countBuilder(
-                crossAxisCount: 2,
-                itemBuilder: (context, index) {
-                  DocumentSnapshot documentSnapshot =
-                      snapshot.data.documents[index];
-                  return _myPageList(context, documentSnapshot);
-                },
-                staggeredTileBuilder: (int index) => const StaggeredTile.fit(1),
-                itemCount: snapshot.data.documents.length,
-              ),
-            ],
-          );
-        });
-  }
-
   //投稿表示する処理
-  Widget _myPageList(BuildContext context, DocumentSnapshot document) {
+  Widget _myPost(BuildContext context, DocumentSnapshot document, index) {
 //    return Padding(
 //        padding: EdgeInsets.only(bottom: 1),
-    return InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-                settings: const RouteSettings(name: "/postDetails"),
+    return Column(
+      children: <Widget>[
+        InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    settings: const RouteSettings(name: "/postDetails"),
 
-                //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
-                builder: (BuildContext context) => MyPostDetails(document)),
-          );
-        },
-        child: Card(
-          //写真表示
-          child: ImageUrl(imageUrl: document['url']),
-        ));
+                    //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
+                    builder: (BuildContext context) => MyPostDetails(document)),
+              );
+            },
+            child: Card(
+              //写真表示
+              child: ImageUrl(imageUrl: document['url']),
+            )),
+        index == _myPostList.length - 1 && _postLoadCheck == 0
+            ? Center(
+                child: Container(
+                  margin: const EdgeInsets.only(top: 8.0, bottom: 50),
+                  width: 32.0,
+                  height: 32.0,
+                  child: const CircularProgressIndicator(),
+                ),
+              )
+            : Container()
+      ],
+    );
   }
 
   Widget userProfile() {

@@ -5,6 +5,47 @@ import 'dart:async';
 
 import 'package:uuid/uuid.dart';
 
+favoriteButton(document) {
+  return Padding(
+    padding: const EdgeInsets.only(top: 1),
+    child: StreamBuilder<QuerySnapshot>(
+        stream: Firestore.instance
+            .collection('users')
+            .document(firebaseUser.uid)
+            .collection("favorite")
+            .where("documentId", isEqualTo: document.documentID)
+            .snapshots(),
+        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          if (!snapshot.hasData) return const Text('Loading...');
+          if (snapshot.data.documents.length == 0)
+            return FlatButton(
+              child: Icon(
+                Icons.favorite_border,
+                color: Colors.pinkAccent,
+              ),
+              onPressed: () {
+                print("いいねボタンを押しました");
+
+                //お気に入りボタン押した投稿のdocumentIDと時間を保存する処理
+                uploadFavorite(document);
+              },
+            );
+          return FlatButton(
+            child: Icon(
+              Icons.favorite,
+              color: Colors.pinkAccent,
+            ),
+            onPressed: () {
+              print("いいねボタンを押しました");
+
+              //お気に入りボタン押した投稿のdocumentIDと時間を保存する処理
+              uploadFavorite(document);
+            },
+          );
+        }),
+  );
+}
+
 uploadFavorite(document) async {
   var _savedDocumentID;
 
@@ -15,9 +56,8 @@ uploadFavorite(document) async {
       .collection("favorite")
       .where("documentId", isEqualTo: document.documentID)
       .snapshots()
-//      .listen((data) => _savedDocumentID = data.documents[0]["documentId"]);
-  //上のコードで十分なはずだがエラー出る。上も一応動く。forEach使う必要ない
-  .listen((data) => data.documents.forEach((doc) =>
+      //上のコードで十分なはずだがエラー出る。上も一応動く。forEach使う必要ない
+      .listen((data) => data.documents.forEach((doc) =>
 
           //空の時nullに上書きされない
           _savedDocumentID = doc["documentId"]));
@@ -28,7 +68,7 @@ uploadFavorite(document) async {
   DocumentReference _beFavoritedUserRef;
   DocumentReference _noticeFavoriteRef;
 
-//document.documentIDはいいねした投稿のドキュメントID
+  //document.documentIDはいいねした投稿のドキュメントID
 
   //いいねした人のDBにいいねした投稿のドキュメントIDを保存
   _favoritedUserRef = Firestore.instance
@@ -44,7 +84,7 @@ uploadFavorite(document) async {
       .collection("posts")
       .document(document.documentID)
       .collection('beFavorited')
-  //削除できるようにユーザーIdを指定している
+      //削除できるようにユーザーIdを指定している
       .document(firebaseUser.uid);
 
   //noticeに既読したことを保存するためにidが必要
@@ -56,7 +96,6 @@ uploadFavorite(document) async {
       .document(document['userId'])
       .collection("notice")
       .document(id);
-
 
   //処理を1秒遅らせている。遅らせないとsavedDocumentIDが更新される前にこちらの処理をしてしまう。
   Future.delayed(new Duration(seconds: 1), () {
@@ -73,19 +112,19 @@ uploadFavorite(document) async {
       });
       _beFavoritedUserRef.setData({
         "documentId": document.documentID,
-        "userId" : firebaseUser.uid,
+        "userId": firebaseUser.uid,
         "time": DateTime.now(),
       });
       _noticeFavoriteRef.setData({
         "documentId": document.documentID,
-        "userId" : firebaseUser.uid,
+        "userId": firebaseUser.uid,
         "time": DateTime.now(),
         "id": id,
 
         //favoriteとフォローを識別するためにつけている
         "favorite": "fav",
 
-        "url":  document["url"]
+        "url": document["url"]
       });
     }
   });

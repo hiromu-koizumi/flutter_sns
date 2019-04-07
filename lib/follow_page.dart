@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cos/login.dart';
+import 'package:flutter_cos/user_name_bar.dart';
 import 'package:flutter_cos/user_page.dart';
 
 class MyFollowPage extends StatefulWidget {
@@ -67,8 +68,8 @@ class _MyFollowPageState extends State<MyFollowPage>
                   padding: const EdgeInsets.only(top: 10.0),
 
                   //投稿を表示する処理にデータを送っている
-                  itemBuilder: (context, index) => _followingFollowersName(
-                      context, snapshot.data.documents[index]),
+                  itemBuilder: (context, index) =>
+                      userName(context, snapshot.data.documents[index]),
                 );
               }),
         );
@@ -94,57 +95,12 @@ class _MyFollowPageState extends State<MyFollowPage>
                   padding: const EdgeInsets.only(top: 10.0),
 
                   //投稿を表示する処理にデータを送っている
-                  itemBuilder: (context, index) => _followingFollowersName(
-                      context, snapshot.data.documents[index]),
+                  itemBuilder: (context, index) =>
+                      userName(context, snapshot.data.documents[index]),
                 );
               }),
         );
         break;
     }
-  }
-
-  Widget _followingFollowersName(
-      BuildContext context, DocumentSnapshot document) {
-    return StreamBuilder<QuerySnapshot>(
-        stream: Firestore.instance
-            .collection('users')
-            .where('userId', isEqualTo: document['userId'])
-            .snapshots(),
-        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          if (!snapshot.hasData) return const Text('Loading...');
-          userInformation = snapshot.data.documents[0];
-
-          return Padding(
-              padding: EdgeInsets.only(top: 5, left: 5),
-              child: InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          settings: const RouteSettings(name: "/userPage"),
-                          builder: (BuildContext context) =>
-                              //表示されている名前のユーザーIDをUserPageに渡している
-                              UserPage(document['userId'])),
-                    );
-                  },
-                  child: Row(
-                    children: <Widget>[
-                      Material(
-                        child: Image.network(
-                          (snapshot.data.documents[0]['photoUrl']),
-                          width: 40,
-                          height: 40,
-                          fit: BoxFit.cover,
-                        ),
-                        borderRadius: BorderRadius.all(Radius.circular(20.0)),
-                        clipBehavior: Clip.hardEdge,
-                      ),
-                      SizedBox(
-                        width: 20.0,
-                      ),
-                      Text(snapshot.data.documents[0]['userName']),
-                    ],
-                  )));
-        });
   }
 }

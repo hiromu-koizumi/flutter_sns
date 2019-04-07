@@ -7,6 +7,7 @@ import 'package:flutter_cos/main.dart';
 import 'package:flutter_cos/message_page.dart';
 import 'package:flutter_cos/post.dart';
 import 'package:flutter_cos/search_result_page.dart';
+import 'package:flutter_cos/user_name_bar.dart';
 import 'package:flutter_cos/user_page.dart';
 
 //投稿をタッチすると表示される画面
@@ -58,18 +59,7 @@ class _MyPostDetailsState extends State<MyPostDetails> {
                 child: Card(
                   child:
                       Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
-                    ListTile(
-                      title: userName(),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              settings: const RouteSettings(name: "/userPage"),
-                              builder: (BuildContext context) =>
-                                  UserPage(widget.document['userId'])),
-                        );
-                      },
-                    ),
+                    userName(context, widget.document),
 
                     //写真表示
                     ImageUrl(imageUrl: _data.url),
@@ -185,8 +175,6 @@ class _MyPostDetailsState extends State<MyPostDetails> {
                                 .toList()),
                       ],
                     )
-
-                    //leading: const Icon(Icons.android),
                   ]),
                 ))));
   }
@@ -206,38 +194,6 @@ class _MyPostDetailsState extends State<MyPostDetails> {
           //userInformation = snapshot.data.documents[0];
 
           return Text('${snapshot.data.documents.length}人がいいねしたよ！！');
-        });
-  }
-
-  //usernameの処理まとめられるとおもう。でもまとめると他人のユーザー名を表示させるのが難しい
-  Widget userName() {
-    return StreamBuilder<QuerySnapshot>(
-        stream: Firestore.instance
-            .collection('users')
-            .where('userId', isEqualTo: widget.document['userId'])
-            .snapshots(),
-        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          if (!snapshot.hasData) return const Text('Loading...');
-          userInformation = snapshot.data.documents[0];
-
-          return Row(
-            children: <Widget>[
-              Material(
-                child: Image.network(
-                  (snapshot.data.documents[0]['photoUrl']),
-                  width: 40,
-                  height: 40,
-                  fit: BoxFit.cover,
-                ),
-                borderRadius: BorderRadius.all(Radius.circular(20.0)),
-                clipBehavior: Clip.hardEdge,
-              ),
-              SizedBox(
-                width: 20.0,
-              ),
-              Text(snapshot.data.documents[0]['userName']),
-            ],
-          );
         });
   }
 }
