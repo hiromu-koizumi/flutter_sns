@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cos/login.dart';
@@ -10,6 +12,34 @@ class NoticePage extends StatefulWidget {
 }
 
 class _NoticePageState extends State<NoticePage> {
+  final _noticeList = [];
+  bool _loading = false;
+  var _loadCheckNotice = 0;
+  final _getNoticeNumber = 12;
+
+  StreamController<List> _noticeController = StreamController<List>.broadcast();
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    Firestore.instance
+        .collection('users')
+        .document(firebaseUser.uid)
+        .collection("notice")
+        .orderBy("time", descending: true)
+        .limit(_getNoticeNumber)
+        .snapshots()
+        .listen(
+            (data) => data.documents.forEach((doc) => _noticeList.add(doc)));
+
+    //3秒遅くしないとpostListに投稿が代入できていない
+    Future.delayed(new Duration(seconds: 4), () {
+      _noticeController.add(_noticeList);
+      _loadCheckNotice = _noticeList.length - _getNoticeNumber;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -20,37 +50,63 @@ class _NoticePageState extends State<NoticePage> {
     );
   }
 
-  //上タブの表示処理.ユーザーネームを表示させる
-  Widget noticePage() {
-    return Padding(
-      padding: const EdgeInsets.only(top: 12.0),
-      child: StreamBuilder<QuerySnapshot>(
+  fetchNotice(document) async {
+    if (_loading) {
+      return null;
+    }
 
-          //followしている人の情報を_followingFollowersNameに送る。_followingFollowersNameでは、その情報からユーザーIDを取り出し、IDを使いユーザーネームを取り出し表示している
-          stream: Firestore.instance
-              .collection('users')
-              .document(firebaseUser.uid)
-              .collection("notice")
-              .orderBy("time", descending: true)
-              .limit(10)
-              .snapshots(),
-          builder:
-              (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-            if (!snapshot.hasData) return const Text('Loading...');
-            return ListView.builder(
-              //データをいくつ持ってくるかの処理
-              itemCount: snapshot.data.documents.length,
-              padding: const EdgeInsets.only(top: 10.0),
+    _loading = true;
+    Firestore.instance
+        .collection('users')
+        .document(firebaseUser.uid)
+        .collection("notice")
+        .orderBy("time", descending: true)
+        .startAfter([document['time']])
+        .limit(_getNoticeNumber)
+        .snapshots()
+        .listen(
+            (data) => data.documents.forEach((doc) => _noticeList.add(doc)));
 
-              //投稿を表示する処理にデータを送っている
-              itemBuilder: (context, index) =>
-                  _noticeName(context, snapshot.data.documents[index]),
-            );
-          }),
-    );
+    Future.delayed(new Duration(seconds: 4), () {
+      print('読み込み中');
+      _noticeController.add(_noticeList);
+      _loadCheckNotice = _noticeList.length - _getNoticeNumber;
+      _loading = false;
+    });
   }
 
-  Widget _noticeName(BuildContext context, DocumentSnapshot document) {
+  //上タブの表示処理.ユーザーネームを表示させる
+  Widget noticePage() {
+    return NotificationListener<ScrollNotification>(
+        onNotification: (ScrollNotification value) {
+          if (value.metrics.extentAfter == 0.0) {
+            //画面そこに到達したときの処理
+            //一番最後に取得した投稿をfetchPostsに送っている。あちらでは、startAfterを使いその投稿より後の投稿を取得している
+            fetchNotice(_noticeList[_noticeList.length - 1]);
+          }
+        },
+        child: StreamBuilder(
+            stream: _noticeController.stream,
+            builder: (BuildContext context, snapshot) {
+              //if (!snapshot.hasData) return const Text('Loading...');
+
+              return Padding(
+                  padding: EdgeInsets.only(bottom: 50),
+                  child: ListView.builder(
+                    itemCount: _noticeList.length,
+                    padding: const EdgeInsets.only(top: 10.0),
+
+                    //投稿を表示する処理にデータを送っている
+                    itemBuilder: (context, index) {
+                      DocumentSnapshot documentSnapshot = _noticeList[index];
+
+                      return _noticeName(context, documentSnapshot, index);
+                    },
+                  ));
+            }));
+  }
+
+  Widget _noticeName(BuildContext context, DocumentSnapshot document, index) {
     return StreamBuilder<QuerySnapshot>(
         //フォローした人などのユーザー名を取得している。ログインユーザーのnoticeDBに保存されているuserIdを利用して
         stream: Firestore.instance
@@ -66,99 +122,12 @@ class _NoticePageState extends State<NoticePage> {
               {
                 if (document['favorite'] == "fav") {
                   //ユーザー未登録の人がいいねしたのを表示するときの処理
-                  return Container(
-                      margin: EdgeInsets.only(left: 5, right: 5, top: 5),
-                      child: Row(children: <Widget>[
-                        Text("未登録さんがいいねしました"),
-                        SizedBox(
-                          width: 15.0,
-                        ),
-                        Container(
-                          width: 40.0,
-                          height: 40.0,
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(2.0),
-                            child: Image.network(
-                              //横幅がが長くならない
-                              document['url'], fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                      ]));
-                } else if (document['message'] == "mes") {
-                  //ユーザー未登録の人がコメントしたのを表示するときの処理
-                  return InkWell(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              settings:
-                                  const RouteSettings(name: "/MessagePage"),
-                              builder: (BuildContext context) =>
-                                  //表示されている名前のユーザーIDをUserPageに渡している
-                                  MessagePage(document)),
-                        );
-                      },
-                      child: Container(
+                  return Column(
+                    children: <Widget>[
+                      Container(
                           margin: EdgeInsets.only(left: 5, right: 5, top: 5),
                           child: Row(children: <Widget>[
-                            Column(
-                              children: <Widget>[
-                                Text("未登録さんがあなたの投稿にコメントしました"),
-                                Container(
-                                  width: 40.0,
-                                  height: 40.0,
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(2.0),
-                                    child: Image.network(
-                                      //横幅がが長くならない
-                                      document['url'], fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            )
-                          ])));
-                }
-              }
-              break;
-
-            //ユーザー登録している人の通知を表示する処理
-            case "1":
-              {
-                //何回も呼び出される
-                if (document['favorite'] == "fav") {
-                  //登録済みの人がいいねしたのを表示する処理
-                  return InkWell(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              settings: const RouteSettings(name: "/userPage"),
-                              builder: (BuildContext context) =>
-                                  //表示されている名前のユーザーIDをUserPageに渡している
-                                  UserPage(document['userId'])),
-                        );
-                      },
-                      child: Container(
-                          margin: EdgeInsets.only(left: 5, right: 5, top: 5),
-                          child: Row(children: <Widget>[
-                            Material(
-                              child: Image.network(
-                                (snapshot.data.documents[0]['photoUrl']),
-                                width: 40,
-                                height: 40,
-                                fit: BoxFit.cover,
-                              ),
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(20.0)),
-                              clipBehavior: Clip.hardEdge,
-                            ),
-                            SizedBox(
-                              width: 20.0,
-                            ),
-                            Text(
-                                "${snapshot.data.documents[0]['userName']}さんがいいねしました"),
+                            Text("未登録さんがいいねしました"),
                             SizedBox(
                               width: 15.0,
                             ),
@@ -173,73 +142,119 @@ class _NoticePageState extends State<NoticePage> {
                                 ),
                               ),
                             ),
-                          ])));
-                } else if (document['follow'] == "fol") {
-                  //登録済みの人がフォローしたのを表示する処理
-                  return InkWell(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              settings: const RouteSettings(name: "/userPage"),
-                              builder: (BuildContext context) =>
-                                  //表示されている名前のユーザーIDをUserPageに渡している
-                                  UserPage(document['userId'])),
-                        );
-                      },
-                      child: Container(
-                          margin: EdgeInsets.only(left: 5, right: 5, top: 5),
-                          child: Row(children: <Widget>[
-                            Material(
-                              child: Image.network(
-                                (snapshot.data.documents[0]['photoUrl']),
-                                width: 40,
-                                height: 40,
-                                fit: BoxFit.cover,
+                          ])),
+                      index == _noticeList.length - 1 && _loadCheckNotice == 0
+                          ? Center(
+                              child: Container(
+                                margin:
+                                    const EdgeInsets.only(top: 8.0, bottom: 60),
+                                width: 32.0,
+                                height: 32.0,
+                                child: const CircularProgressIndicator(),
                               ),
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(20.0)),
-                              clipBehavior: Clip.hardEdge,
-                            ),
-                            SizedBox(
-                              width: 20.0,
-                            ),
-                            Text(
-                                "${snapshot.data.documents[0]['userName']}さんがあなたをフォローしました"),
-                          ])));
+                            )
+                          : Container()
+                    ],
+                  );
                 } else if (document['message'] == "mes") {
-                  //登録済みの人がフォローしたのを表示する処理
-                  return InkWell(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              settings:
-                                  const RouteSettings(name: "/MessagePage"),
-                              builder: (BuildContext context) =>
-                                  //表示されている名前のユーザーIDをUserPageに渡している
-                                  MessagePage(document)),
-                        );
-                      },
-                      child: Container(
-                          margin: EdgeInsets.only(left: 5, right: 5, top: 5),
-                          child: Row(children: <Widget>[
-                            Container(
-                                width: 40.0,
-                                height: 40.0,
-                                decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    image: DecorationImage(
-                                        fit: BoxFit.fill,
-                                        image: NetworkImage(snapshot
-                                            .data.documents[0]['photoUrl'])))),
-                            SizedBox(
-                              width: 20.0,
-                            ),
-                            Column(
-                              children: <Widget>[
+                  //ユーザー未登録の人がコメントしたのを表示するときの処理
+                  return Column(
+                    children: <Widget>[
+                      InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  settings:
+                                      const RouteSettings(name: "/MessagePage"),
+                                  builder: (BuildContext context) =>
+                                      //表示されている名前のユーザーIDをUserPageに渡している
+                                      MessagePage(document)),
+                            );
+                          },
+                          child: Container(
+                              margin:
+                                  EdgeInsets.only(left: 5, right: 5, top: 5),
+                              child: Row(children: <Widget>[
+                                Column(
+                                  children: <Widget>[
+                                    Text("未登録さんがあなたの投稿にコメントしました"),
+                                    Container(
+                                      width: 40.0,
+                                      height: 40.0,
+                                      child: ClipRRect(
+                                        borderRadius:
+                                            BorderRadius.circular(2.0),
+                                        child: Image.network(
+                                          //横幅がが長くならない
+                                          document['url'], fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              ]))),
+                      index == _noticeList.length - 1 && _loadCheckNotice == 0
+                          ? Center(
+                              child: Container(
+                                margin:
+                                    const EdgeInsets.only(top: 8.0, bottom: 60),
+                                width: 32.0,
+                                height: 32.0,
+                                child: const CircularProgressIndicator(),
+                              ),
+                            )
+                          : Container()
+                    ],
+                  );
+                }
+              }
+              break;
+
+            //ユーザー登録している人の通知を表示する処理
+            case "1":
+              {
+                //何回も呼び出される
+                if (document['favorite'] == "fav") {
+                  //登録済みの人がいいねしたのを表示する処理
+
+                  return Column(
+                    children: <Widget>[
+                      InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  settings:
+                                      const RouteSettings(name: "/userPage"),
+                                  builder: (BuildContext context) =>
+                                      //表示されている名前のユーザーIDをUserPageに渡している
+                                      UserPage(document['userId'])),
+                            );
+                          },
+                          child: Container(
+                              margin:
+                                  EdgeInsets.only(left: 5, right: 5, top: 5),
+                              child: Row(children: <Widget>[
+                                Material(
+                                  child: Image.network(
+                                    (snapshot.data.documents[0]['photoUrl']),
+                                    width: 40,
+                                    height: 40,
+                                    fit: BoxFit.cover,
+                                  ),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(20.0)),
+                                  clipBehavior: Clip.hardEdge,
+                                ),
+                                SizedBox(
+                                  width: 20.0,
+                                ),
                                 Text(
-                                    "${snapshot.data.documents[0]['userName']}さんがあなたの投稿にコメントしました"),
+                                    "${snapshot.data.documents[0]['userName']}さんがいいねしました"),
+                                SizedBox(
+                                  width: 15.0,
+                                ),
                                 Container(
                                   width: 40.0,
                                   height: 40.0,
@@ -251,9 +266,136 @@ class _NoticePageState extends State<NoticePage> {
                                     ),
                                   ),
                                 ),
-                              ],
+                              ]))),
+                      index == _noticeList.length - 1 && _loadCheckNotice == 0
+                          ? Center(
+                              child: Container(
+                                margin:
+                                    const EdgeInsets.only(top: 8.0, bottom: 60),
+                                width: 32.0,
+                                height: 32.0,
+                                child: const CircularProgressIndicator(),
+                              ),
                             )
-                          ])));
+                          : Container()
+                    ],
+                  );
+                } else if (document['follow'] == "fol") {
+                  //登録済みの人がフォローしたのを表示する処理
+
+                  return Column(
+                    children: <Widget>[
+                      InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  settings:
+                                      const RouteSettings(name: "/userPage"),
+                                  builder: (BuildContext context) =>
+                                      //表示されている名前のユーザーIDをUserPageに渡している
+                                      UserPage(document['userId'])),
+                            );
+                          },
+                          child: Container(
+                              margin:
+                                  EdgeInsets.only(left: 5, right: 5, top: 5),
+                              child: Row(children: <Widget>[
+                                Material(
+                                  child: Image.network(
+                                    (snapshot.data.documents[0]['photoUrl']),
+                                    width: 40,
+                                    height: 40,
+                                    fit: BoxFit.cover,
+                                  ),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(20.0)),
+                                  clipBehavior: Clip.hardEdge,
+                                ),
+                                SizedBox(
+                                  width: 20.0,
+                                ),
+                                Text(
+                                    "${snapshot.data.documents[0]['userName']}さんがあなたをフォローしました"),
+                              ]))),
+                      index == _noticeList.length - 1 && _loadCheckNotice == 0
+                          ? Center(
+                              child: Container(
+                                margin:
+                                    const EdgeInsets.only(top: 8.0, bottom: 60),
+                                width: 32.0,
+                                height: 32.0,
+                                child: const CircularProgressIndicator(),
+                              ),
+                            )
+                          : Container()
+                    ],
+                  );
+                } else if (document['message'] == "mes") {
+                  //登録済みの人がコメントしたのを表示する処理
+
+                  return Column(
+                    children: <Widget>[
+                      InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  settings:
+                                      const RouteSettings(name: "/MessagePage"),
+                                  builder: (BuildContext context) =>
+                                      //表示されている名前のユーザーIDをUserPageに渡している
+                                      MessagePage(document)),
+                            );
+                          },
+                          child: Container(
+                              margin:
+                                  EdgeInsets.only(left: 5, right: 5, top: 5),
+                              child: Row(children: <Widget>[
+                                Container(
+                                    width: 40.0,
+                                    height: 40.0,
+                                    decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        image: DecorationImage(
+                                            fit: BoxFit.fill,
+                                            image: NetworkImage(snapshot.data
+                                                .documents[0]['photoUrl'])))),
+                                SizedBox(
+                                  width: 20.0,
+                                ),
+                                Column(
+                                  children: <Widget>[
+                                    Text(
+                                        "${snapshot.data.documents[0]['userName']}さんがあなたの投稿にコメントしました"),
+                                    Container(
+                                      width: 40.0,
+                                      height: 40.0,
+                                      child: ClipRRect(
+                                        borderRadius:
+                                            BorderRadius.circular(2.0),
+                                        child: Image.network(
+                                          //横幅がが長くならない
+                                          document['url'], fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              ]))),
+                      index == _noticeList.length - 1 && _loadCheckNotice == 0
+                          ? Center(
+                              child: Container(
+                                margin:
+                                    const EdgeInsets.only(top: 8.0, bottom: 60),
+                                width: 32.0,
+                                height: 32.0,
+                                child: const CircularProgressIndicator(),
+                              ),
+                            )
+                          : Container()
+                    ],
+                  );
                 }
               }
               break;

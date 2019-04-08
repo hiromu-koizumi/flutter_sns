@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +15,8 @@ class UserPage extends StatelessWidget {
   UserPage(this.userId);
 
   final userId;
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -45,6 +49,36 @@ class UserPages extends StatefulWidget {
 
 class _UserPageState extends State<UserPages> {
   _UserPageState(this.userId);
+
+  final _postList = [];
+  bool _loading = false;
+  var _loadCheckPost = 0;
+  final _getPostNumber = 6;
+  StreamController<List> _postsController =
+  StreamController<List>.broadcast();
+
+  @override
+  void initState() {
+    super.initState();
+
+    Firestore.instance
+        .collection('users')
+        .document(widget.userId)
+        .collection("posts")
+        .orderBy("time", descending: true)
+        .limit(_getPostNumber)
+        .snapshots()
+        .listen((data) =>
+        data.documents.forEach((doc) => _postList.add(doc)));
+
+    //3秒遅くしないとpostListに投稿が代入できていない
+    Future.delayed(new Duration(seconds: 4), () {
+      _postsController.add(_postList);
+
+      //まだ読み込んでいないpostがあるか判断するために必要
+      _loadCheckPost = _postList.length - _getPostNumber;
+    });
+  }
 
   final userId;
 
@@ -160,6 +194,29 @@ class _UserPageState extends State<UserPages> {
     );
   }
 
+  fetchPosts(document) async {
+    if (_loading) {
+      return null;
+    }
+    _loading = true;
+    Firestore.instance
+        .collection('users')
+        .document(widget.userId)
+        .collection('posts')
+        .orderBy("time", descending: true)
+        .startAfter([document['time']])
+        .limit(_getPostNumber)
+        .snapshots()
+        .listen((data) => data.documents.forEach((doc) => _postList.add(doc)));
+
+    Future.delayed(new Duration(seconds: 4), () {
+      print('読み込み中');
+      _postsController.sink.add(_postList);
+      _loadCheckPost = _postList.length - _getPostNumber;
+      _loading = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     DocumentReference _myFollowReference;
@@ -183,39 +240,106 @@ class _UserPageState extends State<UserPages> {
         .collection("notice")
         .document();
 
-    return StreamBuilder<QuerySnapshot>(
-        stream: Firestore.instance
-            .collection('users')
-            .document(widget.userId)
-            .collection('posts')
-            .orderBy("time", descending: true)
-            //.where("userId", isEqualTo: firebaseUser.uid)
-            .snapshots(),
+    return StreamBuilder(
+      stream: _postsController.stream,
+      builder: (context, snapshot) {
+        //画面底を感知する
+        return Padding(
+            padding: EdgeInsets.only(bottom: 50),
+            child: NotificationListener<ScrollNotification>(
+                onNotification: (ScrollNotification value) {
+                  if (value.metrics.extentAfter == 0.0) {
+                    //画面そこに到達したときの処理
+                    //一番最後に取得した投稿をfetchPostsに送っている。あちらでは、startAfterを使いその投稿より後の投稿を取得している
+                    fetchPosts(_postList[_postList.length - 1]);
+                  }
+                },
+                child: CustomScrollView(
+                  slivers: <Widget>[
+                    userProfileHeader(_myFollowReference, _othersFollowReference, _noticeFollowRef),
+                    SliverStaggeredGrid.countBuilder(
+                      crossAxisCount: 2,
+                      mainAxisSpacing: 4.0,
+                      crossAxisSpacing: 4.0,
+                      itemBuilder: (context, index) {
+                        DocumentSnapshot documentSnapshot =
+                        _postList[index];
 
-        //streamが更新されるたびに呼ばれる
-        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          if (!snapshot.hasData) return const Text('Loading...');
-          return Padding(
-              padding: EdgeInsets.only(bottom: 50),
-              child: CustomScrollView(
-                slivers: <Widget>[
-                  // makeHeader(_myFollowReference, _othersFollowReference),
-                  userProfileHeader(_myFollowReference, _othersFollowReference,
-                      _noticeFollowRef),
-                  SliverStaggeredGrid.countBuilder(
-                    crossAxisCount: 2,
-                    itemBuilder: (context, index) {
-                      DocumentSnapshot documentSnapshot =
-                          snapshot.data.documents[index];
-                      return _userPageList(context, documentSnapshot);
-                    },
-                    staggeredTileBuilder: (int index) =>
-                        const StaggeredTile.fit(1),
-                    itemCount: snapshot.data.documents.length,
-                  ),
-                ],
-              ));
-        });
+                        return _userPageList(context, documentSnapshot, index);
+                      },
+                      staggeredTileBuilder: (int index) =>
+                      const StaggeredTile.fit(1),
+                      itemCount: _postList.length,
+                    ),
+                  ],
+                )));
+
+
+
+
+
+//          NotificationListener<ScrollNotification>(
+//            onNotification: (ScrollNotification value) {
+//              if (value.metrics.extentAfter == 0.0) {
+//                //画面そこに到達したときの処理
+//                //一番最後に取得した投稿をfetchPostsに送っている。あちらでは、startAfterを使いその投稿より後の投稿を取得している
+//                fetchPosts(_postList[_postList.length - 1]);
+//              }
+//            },
+//            child: CustomScrollView(
+//              slivers: <Widget>[
+//              userProfileHeader(_myFollowReference, _othersFollowReference, _noticeFollowRef),
+//                SliverStaggeredGrid.countBuilder(
+//                  crossAxisCount: 2,
+//                  mainAxisSpacing: 4.0,
+//                  crossAxisSpacing: 4.0,
+//                  itemBuilder: (context, index) {
+//                    DocumentSnapshot documentSnapshot = _postList[index];
+//
+//                    return _userPageList(context, documentSnapshot, index);
+//                  },
+//                  staggeredTileBuilder: (int index) =>
+//                  const StaggeredTile.fit(1),
+//                  itemCount: _postList.length,
+//                ),
+//              ],
+//            ));
+      },
+    );
+
+//      StreamBuilder<QuerySnapshot>(
+//        stream: Firestore.instance
+//            .collection('users')
+//            .document(widget.userId)
+//            .collection('posts')
+//            .orderBy("time", descending: true)
+//            //.where("userId", isEqualTo: firebaseUser.uid)
+//            .snapshots(),
+//
+//        //streamが更新されるたびに呼ばれる
+//        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+//          if (!snapshot.hasData) return const Text('Loading...');
+//          return Padding(
+//              padding: EdgeInsets.only(bottom: 50),
+//              child: CustomScrollView(
+//                slivers: <Widget>[
+//                  // makeHeader(_myFollowReference, _othersFollowReference),
+//                  userProfileHeader(_myFollowReference, _othersFollowReference,
+//                      _noticeFollowRef),
+//                  SliverStaggeredGrid.countBuilder(
+//                    crossAxisCount: 2,
+//                    itemBuilder: (context, index) {
+//                      DocumentSnapshot documentSnapshot =
+//                          snapshot.data.documents[index];
+//                      return _userPageList(context, documentSnapshot);
+//                    },
+//                    staggeredTileBuilder: (int index) =>
+//                        const StaggeredTile.fit(1),
+//                    itemCount: snapshot.data.documents.length,
+//                  ),
+//                ],
+//              ));
+//        });
   }
 
   userProfileHeader(
@@ -302,22 +426,36 @@ class _UserPageState extends State<UserPages> {
   }
 
   //投稿表示する処理
-  Widget _userPageList(BuildContext context, DocumentSnapshot document) {
-    return InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-                settings: const RouteSettings(name: "/postDetails"),
+  Widget _userPageList(BuildContext context, DocumentSnapshot document,index) {
+    return Column(
+      children: <Widget>[
+        InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    settings: const RouteSettings(name: "/postDetails"),
 
-                //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
-                builder: (BuildContext context) => PostDetails(document)),
-          );
-        },
-        child: Card(
-          //写真表示
-          child: ImageUrl(imageUrl: document['url']),
-        ));
+                    //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
+                    builder: (BuildContext context) => PostDetails(document)),
+              );
+            },
+            child: Card(
+              //写真表示
+              child: ImageUrl(imageUrl: document['url']),
+            )),
+        index == _postList.length - 1 && _loadCheckPost == 0
+            ? Center(
+          child: Container(
+            margin: const EdgeInsets.only(top: 8.0, bottom: 50),
+            width: 32.0,
+            height: 32.0,
+            child: const CircularProgressIndicator(),
+          ),
+        )
+            : Container()
+      ],
+    );
   }
 
   Widget userProfile() {

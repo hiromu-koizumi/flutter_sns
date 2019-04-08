@@ -120,7 +120,7 @@ class _TimeLineState extends State<TimeLine> //上タブのために必要
 
     Future.delayed(new Duration(seconds: 4), () {
       print('読み込み中');
-      _newPostsController.add(_postList);
+      _newPostsController.sink.add(_postList);
       _loading = false;
     });
   }
