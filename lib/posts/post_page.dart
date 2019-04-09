@@ -4,12 +4,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cos/Image_url.dart';
+import 'package:flutter_cos/parts/Image_url.dart';
+import 'package:flutter_cos/other_pages/login_page.dart';
 import 'package:flutter_cos/main.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
-import 'login.dart';
 
 //投稿作成、編集画面
 

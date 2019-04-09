@@ -3,10 +3,10 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cos/Image_url.dart';
-import 'package:flutter_cos/login.dart';
-import 'package:flutter_cos/post_details.dart';
-import 'package:flutter_cos/user_follow_page.dart';
+import 'package:flutter_cos/parts/Image_url.dart';
+import 'package:flutter_cos/follow/user_follow_page.dart';
+import 'package:flutter_cos/other_pages/login_page.dart';
+import 'package:flutter_cos/posts/post_details.dart';
 
 //格子状に表示する
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';

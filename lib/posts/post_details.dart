@@ -1,13 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cos/Image_url.dart';
-import 'package:flutter_cos/favorite.dart';
-import 'package:flutter_cos/login.dart';
+import 'package:flutter_cos/parts/Image_url.dart';
+import 'package:flutter_cos/favorites/favorite.dart';
+import 'package:flutter_cos/other_pages/login_page.dart';
 import 'package:flutter_cos/main.dart';
-import 'package:flutter_cos/message_page.dart';
-import 'package:flutter_cos/search_result_page.dart';
-import 'package:flutter_cos/user_name_bar.dart';
-import 'package:flutter_cos/user_page.dart';
+import 'package:flutter_cos/other_pages/message_page.dart';
+import 'package:flutter_cos/searches/search_result_page.dart';
+import 'package:flutter_cos/parts/user_name_bar.dart';
 
 //投稿をタッチすると表示される画面
 

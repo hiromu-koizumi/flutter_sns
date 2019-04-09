@@ -2,12 +2,12 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cos/Image_url.dart';
-import 'package:flutter_cos/follow_page.dart';
-import 'package:flutter_cos/login.dart';
-import 'package:flutter_cos/mypost_details.dart';
-import 'package:flutter_cos/post.dart';
-import 'package:flutter_cos/setting.dart';
+import 'package:flutter_cos/parts/Image_url.dart';
+import 'package:flutter_cos/follow/follow_page.dart';
+import 'package:flutter_cos/other_pages/login_page.dart';
+import 'package:flutter_cos/posts/my_post_details.dart';
+import 'package:flutter_cos/posts/post_page.dart';
+import 'package:flutter_cos/other_pages/setting_page.dart';
 
 //格子状に表示する
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';

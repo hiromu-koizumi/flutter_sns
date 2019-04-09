@@ -6,7 +6,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
-import 'login.dart';
+import 'package:flutter_cos/other_pages/login_page.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 

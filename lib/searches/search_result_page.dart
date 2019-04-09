@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cos/Image_url.dart';
-import 'package:flutter_cos/post_details.dart';
-import 'package:flutter_cos/user_page.dart';
+import 'package:flutter_cos/parts/Image_url.dart';
+import 'package:flutter_cos/posts/post_details.dart';
+import 'package:flutter_cos/user_pages/user_page.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 class SearchResultPage extends StatefulWidget {

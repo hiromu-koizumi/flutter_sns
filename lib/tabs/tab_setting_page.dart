@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cos/login.dart';
-import 'package:flutter_cos/tab_add_page.dart';
+import 'package:flutter_cos/other_pages/login_page.dart';
+import 'package:flutter_cos/tabs/tab_add_page.dart';
 
 //タブ追加ページ作成途中。アプリ内には組み込まれていない
 //上部タブを増やすコードがかけなかった

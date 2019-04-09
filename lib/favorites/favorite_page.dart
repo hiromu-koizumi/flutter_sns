@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cos/login.dart';
-import 'package:flutter_cos/user_name_bar.dart';
+import 'package:flutter_cos/other_pages/login_page.dart';
+import 'package:flutter_cos/parts/user_name_bar.dart';
 
 class MyFavoritePage extends StatefulWidget {
   MyFavoritePage(this.document);
