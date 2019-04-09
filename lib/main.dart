@@ -1,10 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cos/login.dart';
-import 'package:flutter_cos/my_page.dart';
 import 'package:flutter_cos/notice_page.dart';
-import 'package:flutter_cos/search_page.dart';
+import 'package:flutter_cos/searches/search_page.dart';
 import 'package:flutter_cos/time_line_page.dart';
+import 'package:flutter_cos/user_pages/my_page.dart';
 
 //firebaseに保存されるテキスト。const再代入不可な変数。const変数が指す先のメモリ領域も変更不可
 void main() async {
