@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cos/other_pages/login_page.dart';
 import 'package:flutter_cos/user_pages/user_page.dart';
+import 'package:uuid/uuid.dart';
 
 class MessagePage extends StatefulWidget {
   @override
@@ -167,11 +168,14 @@ class _MessagePageState extends State<MessagePage> {
 
       if (firebaseUser.uid != widget.document['userId']) {
         DocumentReference _noticeMessageRef;
+          //noticeに既読したことを保存するためにidが必要
+      final String uuid = Uuid().v1();
+      final _id = uuid;
         _noticeMessageRef = Firestore.instance
             .collection('users')
             .document(widget.document['userId'])
             .collection("notice")
-            .document();
+            .document(_id);
 
         _noticeMessageRef.setData({
           "documentId": widget.document.documentID,
@@ -179,6 +183,8 @@ class _MessagePageState extends State<MessagePage> {
           "message": "mes",
           "url": widget.document["url"],
           "time": DateTime.now(),
+          "id": _id,
+          "read": false
         });
       }
     }

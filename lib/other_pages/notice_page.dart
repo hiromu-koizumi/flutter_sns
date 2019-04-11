@@ -16,12 +16,12 @@ class _NoticePageState extends State<NoticePage> {
   bool _loading = false;
   var _loadCheckNotice = 0;
   final _getNoticeNumber = 12;
+  DocumentReference _notReadNoticeRef;
 
   StreamController<List> _noticeController = StreamController<List>.broadcast();
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     Firestore.instance
         .collection('users')
@@ -35,9 +35,22 @@ class _NoticePageState extends State<NoticePage> {
 
     //3秒遅くしないとpostListに投稿が代入できていない
     Future.delayed(new Duration(seconds: 4), () {
+      //表示された通知に既読したことを保存している
+      for (var n in _noticeList) {
+        _notReadNoticeRef = Firestore.instance
+            .collection('users')
+            .document(firebaseUser.uid)
+            .collection("notice")
+            .document(n['id']);
+        _notReadNoticeRef.updateData({
+          "read": true,
+        });
+      }
       _noticeController.add(_noticeList);
       _loadCheckNotice = _noticeList.length - _getNoticeNumber;
     });
+
+    print('initきてるよv');
   }
 
   @override
@@ -75,35 +88,67 @@ class _NoticePageState extends State<NoticePage> {
     });
   }
 
+  Future<void> _updateNotice() async {
+    Firestore.instance
+        .collection('users')
+        .document(firebaseUser.uid)
+        .collection('notice')
+        .orderBy("time", descending: false)
+        .startAfter([_noticeList[0]['time']])
+        .limit(_getNoticeNumber)
+        .snapshots()
+        .listen((data) =>
+            data.documents.forEach((doc) => _noticeList.insert(0, doc)));
+    Future.delayed(new Duration(seconds: 4), () {
+      //表示された通知に既読したことを保存している
+      for (var n in _noticeList) {
+        _notReadNoticeRef = Firestore.instance
+            .collection('users')
+            .document(firebaseUser.uid)
+            .collection("notice")
+            .document(n['id']);
+        _notReadNoticeRef.updateData({
+          "read": true,
+        });
+      }
+      print('読み込み中');
+      _noticeController.sink.add(_noticeList);
+    });
+  }
+
   //上タブの表示処理.ユーザーネームを表示させる
   Widget noticePage() {
-    return NotificationListener<ScrollNotification>(
-        onNotification: (ScrollNotification value) {
-          if (value.metrics.extentAfter == 0.0) {
-            //画面そこに到達したときの処理
-            //一番最後に取得した投稿をfetchPostsに送っている。あちらでは、startAfterを使いその投稿より後の投稿を取得している
-            fetchNotice(_noticeList[_noticeList.length - 1]);
-          }
-        },
-        child: StreamBuilder(
-            stream: _noticeController.stream,
-            builder: (BuildContext context, snapshot) {
-              //if (!snapshot.hasData) return const Text('Loading...');
+    return RefreshIndicator(
+        //下に引っ張ると更新する処理
+        onRefresh: _updateNotice,
+        child: NotificationListener<ScrollNotification>(
+            onNotification: (ScrollNotification value) {
+              if (value.metrics.extentAfter == 0.0) {
+                //画面そこに到達したときの処理
+                //一番最後に取得した投稿をfetchPostsに送っている。あちらでは、startAfterを使いその投稿より後の投稿を取得している
+                fetchNotice(_noticeList[_noticeList.length - 1]);
+              }
+            },
+            child: StreamBuilder(
+                stream: _noticeController.stream,
+                builder: (BuildContext context, snapshot) {
+                  //if (!snapshot.hasData) return const Text('Loading...');
 
-              return Padding(
-                  padding: EdgeInsets.only(bottom: 50),
-                  child: ListView.builder(
-                    itemCount: _noticeList.length,
-                    padding: const EdgeInsets.only(top: 10.0),
+                  return Padding(
+                      padding: EdgeInsets.only(bottom: 50),
+                      child: ListView.builder(
+                        itemCount: _noticeList.length,
+                        padding: const EdgeInsets.only(top: 10.0),
 
-                    //投稿を表示する処理にデータを送っている
-                    itemBuilder: (context, index) {
-                      DocumentSnapshot documentSnapshot = _noticeList[index];
+                        //投稿を表示する処理にデータを送っている
+                        itemBuilder: (context, index) {
+                          DocumentSnapshot documentSnapshot =
+                              _noticeList[index];
 
-                      return _noticeName(context, documentSnapshot, index);
-                    },
-                  ));
-            }));
+                          return _noticeName(context, documentSnapshot, index);
+                        },
+                      ));
+                })));
   }
 
   Widget _noticeName(BuildContext context, DocumentSnapshot document, index) {

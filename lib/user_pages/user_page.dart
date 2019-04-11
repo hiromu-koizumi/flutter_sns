@@ -10,6 +10,7 @@ import 'package:flutter_cos/posts/post_details.dart';
 
 //格子状に表示する
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:uuid/uuid.dart';
 
 class UserPage extends StatelessWidget {
   UserPage(this.userId);
@@ -86,7 +87,7 @@ class _UserPageState extends State<UserPages> {
   //_followReferenceは自分のDBの保存先
   //フォローとフォロー解除の処理をif文で書いている。firebaseのfollowに保存されていればdeleteの処理。なければ保存の処理。
   followCheck(
-      _myFollowReference, _othersFollowReference, _noticeFollowRef) async {
+      _myFollowReference, _othersFollowReference, _noticeFollowRef,_id) async {
     String checkFollow;
     String toFollowName;
     String isFollowedName;
@@ -145,6 +146,8 @@ class _UserPageState extends State<UserPages> {
             "userId": firebaseUser.uid,
             "time": DateTime.now(),
             "follow": "fol",
+            "id": _id,
+            "read": false
           });
         });
         print('followしたよ');
@@ -153,7 +156,7 @@ class _UserPageState extends State<UserPages> {
   }
 
   //フォローボタンの表示の切り替え処理。
-  followButton(_myFollowReference, _othersFollowReference, _noticeFollowRef) {
+  followButton(_myFollowReference, _othersFollowReference, _noticeFollowRef,_id) {
     return Padding(
       padding: const EdgeInsets.only(top: 1),
       child: StreamBuilder<QuerySnapshot>(
@@ -177,7 +180,7 @@ class _UserPageState extends State<UserPages> {
                 onPressed: () {
                   print('${snapshot.data.documents.length}');
                   followCheck(_myFollowReference, _othersFollowReference,
-                      _noticeFollowRef);
+                      _noticeFollowRef,_id);
                 },
               );
             } else {
@@ -186,7 +189,7 @@ class _UserPageState extends State<UserPages> {
                 child: Text('フォロー中'),
                 onPressed: () {
                   followCheck(_myFollowReference, _othersFollowReference,
-                      _noticeFollowRef);
+                      _noticeFollowRef,_id);
                 },
               );
             }
@@ -233,12 +236,15 @@ class _UserPageState extends State<UserPages> {
         .collection("followers")
         .document(firebaseUser.uid);
 
+      //noticeに既読したことを保存するためにidが必要
+  final String uuid = Uuid().v1();
+  final _id = uuid;
     DocumentReference _noticeFollowRef;
     _noticeFollowRef = Firestore.instance
         .collection('users')
         .document(widget.userId)
         .collection("notice")
-        .document();
+        .document(_id);
 
     return StreamBuilder(
       stream: _postsController.stream,
@@ -256,7 +262,7 @@ class _UserPageState extends State<UserPages> {
                 },
                 child: CustomScrollView(
                   slivers: <Widget>[
-                    userProfileHeader(_myFollowReference, _othersFollowReference, _noticeFollowRef),
+                    userProfileHeader(_myFollowReference, _othersFollowReference, _noticeFollowRef,_id),
                     SliverStaggeredGrid.countBuilder(
                       crossAxisCount: 2,
                       mainAxisSpacing: 4.0,
@@ -273,77 +279,12 @@ class _UserPageState extends State<UserPages> {
                     ),
                   ],
                 )));
-
-
-
-
-
-//          NotificationListener<ScrollNotification>(
-//            onNotification: (ScrollNotification value) {
-//              if (value.metrics.extentAfter == 0.0) {
-//                //画面そこに到達したときの処理
-//                //一番最後に取得した投稿をfetchPostsに送っている。あちらでは、startAfterを使いその投稿より後の投稿を取得している
-//                fetchPosts(_postList[_postList.length - 1]);
-//              }
-//            },
-//            child: CustomScrollView(
-//              slivers: <Widget>[
-//              userProfileHeader(_myFollowReference, _othersFollowReference, _noticeFollowRef),
-//                SliverStaggeredGrid.countBuilder(
-//                  crossAxisCount: 2,
-//                  mainAxisSpacing: 4.0,
-//                  crossAxisSpacing: 4.0,
-//                  itemBuilder: (context, index) {
-//                    DocumentSnapshot documentSnapshot = _postList[index];
-//
-//                    return _userPageList(context, documentSnapshot, index);
-//                  },
-//                  staggeredTileBuilder: (int index) =>
-//                  const StaggeredTile.fit(1),
-//                  itemCount: _postList.length,
-//                ),
-//              ],
-//            ));
       },
     );
-
-//      StreamBuilder<QuerySnapshot>(
-//        stream: Firestore.instance
-//            .collection('users')
-//            .document(widget.userId)
-//            .collection('posts')
-//            .orderBy("time", descending: true)
-//            //.where("userId", isEqualTo: firebaseUser.uid)
-//            .snapshots(),
-//
-//        //streamが更新されるたびに呼ばれる
-//        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-//          if (!snapshot.hasData) return const Text('Loading...');
-//          return Padding(
-//              padding: EdgeInsets.only(bottom: 50),
-//              child: CustomScrollView(
-//                slivers: <Widget>[
-//                  // makeHeader(_myFollowReference, _othersFollowReference),
-//                  userProfileHeader(_myFollowReference, _othersFollowReference,
-//                      _noticeFollowRef),
-//                  SliverStaggeredGrid.countBuilder(
-//                    crossAxisCount: 2,
-//                    itemBuilder: (context, index) {
-//                      DocumentSnapshot documentSnapshot =
-//                          snapshot.data.documents[index];
-//                      return _userPageList(context, documentSnapshot);
-//                    },
-//                    staggeredTileBuilder: (int index) =>
-//                        const StaggeredTile.fit(1),
-//                    itemCount: snapshot.data.documents.length,
-//                  ),
-//                ],
-//              ));
-//        });
   }
 
   userProfileHeader(
-      _myFollowReference, _othersFollowReference, _noticeFollowRef) {
+      _myFollowReference, _othersFollowReference, _noticeFollowRef,_id) {
     return SliverAppBar(
         expandedHeight: 200.0,
         backgroundColor: Colors.white,
@@ -414,7 +355,7 @@ class _UserPageState extends State<UserPages> {
                         ],
                       ),
                       followButton(_myFollowReference, _othersFollowReference,
-                          _noticeFollowRef)
+                          _noticeFollowRef,_id)
                     ],
                   )),
                 ],

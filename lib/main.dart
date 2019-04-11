@@ -1,5 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cos/other_pages/login_page.dart';
 import 'package:flutter_cos/other_pages/notice_page.dart';
 import 'package:flutter_cos/other_pages/splash_page.dart';
 import 'package:flutter_cos/searches/search_page.dart';
@@ -39,18 +41,42 @@ class _BottomBarState extends State<BottomBar> {
       tabBar: CupertinoTabBar(
         items: <BottomNavigationBarItem>[
           BottomNavigationBarItem(
-            icon: new Icon(Icons.home),
+            icon: Icon(Icons.home),
           ),
           BottomNavigationBarItem(
-            icon: new Icon(Icons.search),
+            icon: Icon(Icons.search),
             //title: new Text('Home'),
           ),
           BottomNavigationBarItem(
-            icon: new Icon(Icons.notifications),
-            //title: new Text('Home'),
-          ),
+
+              //既読がついていない通知がある時、赤丸を表示するようにしている
+              icon: StreamBuilder(
+                  stream: Firestore.instance
+                      .collection('users')
+                      .document(firebaseUser.uid)
+                      .collection("notice")
+                      .where("read", isEqualTo: false)
+                      .snapshots(),
+                  builder: (BuildContext context,
+                      AsyncSnapshot<QuerySnapshot> snapshot) {
+                    if (!snapshot.hasData) return Icon(Icons.notifications);
+                    if (snapshot.data.documents.length == 0) {
+                      return Icon(Icons.notifications);
+                    } else {
+                      return Stack(children: <Widget>[
+                        Icon(Icons.notifications),
+                        Positioned(
+                          // draw a red marble
+                          top: 0.0,
+                          right: 0.0,
+                          child: new Icon(Icons.brightness_1,
+                              size: 8.0, color: Colors.redAccent),
+                        )
+                      ]);
+                    }
+                  })),
           BottomNavigationBarItem(
-            icon: new Icon(Icons.face),
+            icon: Icon(Icons.face),
             //title: new Text('MyPage'),
           )
         ],

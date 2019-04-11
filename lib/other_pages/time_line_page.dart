@@ -42,7 +42,6 @@ class _TimeLineState extends State<TimeLine> //上タブのために必要
   void initState() {
     super.initState();
     _tabController = TabController(vsync: this, length: tabs.length);
-
     //初めに表示する投稿を取得している。fetchPostsと一緒にできない。あちらではstartAfterを使用しているので。
     Firestore.instance
         .collection('posts')
@@ -148,16 +147,48 @@ class _TimeLineState extends State<TimeLine> //上タブのために必要
       _followPostLoading = false;
     });
   }
+  Future<void>_updateNewPost()async{
+      Firestore.instance
+        .collection('posts')
+        .orderBy("time", descending: false)
+        .startAfter([_postList[0]['time']])
+        .limit(10)
+        .snapshots()
+        .listen((data) => data.documents.forEach((doc) => _postList.insert(0,doc)));
+    Future.delayed(new Duration(seconds: 4), () {
+      print('読み込み中');
+      _newPostsController.sink.add(_postList);
+    });
+  }
 
+  Future<void>_updateFollowPost()async{
+      Firestore.instance
+        .collection('users')
+        .document(firebaseUser.uid)
+        .collection("followingPosts")
+        .orderBy("time", descending: false)
+        .startAfter([_followPostList[0]['time']])
+        .limit(10)
+        .snapshots()
+        .listen((data) => data.documents.forEach((doc) => _followPostList.insert(0,doc)));
+    Future.delayed(new Duration(seconds: 4), () {
+      print('読み込み中');
+      _followPostsController.sink.add(_followPostList);
+    });
+  }
   //上タブの表示処理
   Widget createTab(Tab tab) {
     switch (tab.text) {
       case '新着':
-        return StreamBuilder(
+        return RefreshIndicator(
+          //下に引っ張ると更新する処理
+          onRefresh: _updateNewPost,
+        child: StreamBuilder(
           stream: _newPostsController.stream,
           builder: (context, snapshot) {
             //画面底を感知する
-            return NotificationListener<ScrollNotification>(
+            return 
+            NotificationListener<ScrollNotification>(
                 onNotification: (ScrollNotification value) {
                   if (value.metrics.extentAfter == 0.0) {
                     //画面そこに到達したときの処理
@@ -183,10 +214,45 @@ class _TimeLineState extends State<TimeLine> //上タブのために必要
                   ],
                 ));
           },
+        )
         );
+        // StreamBuilder(
+        //   stream: _newPostsController.stream,
+        //   builder: (context, snapshot) {
+        //     //画面底を感知する
+        //     return NotificationListener<ScrollNotification>(
+        //         onNotification: (ScrollNotification value) {
+        //           if (value.metrics.extentAfter == 0.0) {
+        //             //画面そこに到達したときの処理
+        //             //一番最後に取得した投稿をfetchPostsに送っている。あちらでは、startAfterを使いその投稿より後の投稿を取得している
+        //             fetchPosts(_postList[_postList.length - 1]);
+        //           }
+        //         },
+        //         child: CustomScrollView(
+        //           slivers: <Widget>[
+        //             SliverStaggeredGrid.countBuilder(
+        //               crossAxisCount: 2,
+        //               mainAxisSpacing: 4.0,
+        //               crossAxisSpacing: 4.0,
+        //               itemBuilder: (context, index) {
+        //                 DocumentSnapshot documentSnapshot = _postList[index];
+
+        //                 return _newPost(context, documentSnapshot, index);
+        //               },
+        //               staggeredTileBuilder: (int index) =>
+        //                   const StaggeredTile.fit(1),
+        //               itemCount: _postList.length,
+        //             ),
+        //           ],
+        //         ));
+        //   },
+        // );
 
       case 'フォロー':
-        return NotificationListener<ScrollNotification>(
+        return RefreshIndicator(
+          //下に引っ張ると更新する処理
+          onRefresh: _updateFollowPost,
+        child:NotificationListener<ScrollNotification>(
             onNotification: (ScrollNotification value) {
               if (value.metrics.extentAfter == 0.0) {
                 //画面そこに到達したときの処理
@@ -213,9 +279,9 @@ class _TimeLineState extends State<TimeLine> //上タブのために必要
                           return _followPost(context, documentSnapshot, index);
                         },
                       ));
-                }));
+                })));
         break;
-    }
+        }
   }
 
   //投稿表示する処理

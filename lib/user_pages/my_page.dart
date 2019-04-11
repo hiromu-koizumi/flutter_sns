@@ -117,8 +117,27 @@ class _MyPageState extends State<MyPages> {
     });
   }
 
+  Future<void>_updatePost()async{
+      Firestore.instance
+        .collection('users')
+        .document(firebaseUser.uid)
+        .collection('posts')
+        .orderBy("time", descending: false)
+        .startAfter([_myPostList[0]['time']])
+        .limit(_getPostNumber)
+        .snapshots()
+        .listen((data) => data.documents.forEach((doc) => _myPostList.insert(0,doc)));
+    Future.delayed(new Duration(seconds: 4), () {
+      print('読み込み中');
+      _postsController.sink.add(_myPostList);
+    });
+  }
+
   postStream() {
-    return StreamBuilder(
+    return RefreshIndicator(
+          //下に引っ張ると更新する処理
+          onRefresh: _updatePost,
+        child:StreamBuilder(
         stream: _postsController.stream,
         //streamが更新されるたびに呼ばれる
         builder: (BuildContext context, snapshot) {
@@ -151,7 +170,7 @@ class _MyPageState extends State<MyPages> {
                       ),
                     ],
                   )));
-        });
+        }));
   }
 
   userProfileHeader() {

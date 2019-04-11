@@ -89,13 +89,13 @@ uploadFavorite(document) async {
 
   //noticeに既読したことを保存するためにidが必要
   final String uuid = Uuid().v1();
-  final id = uuid;
+  final _id = uuid;
 
   _noticeFavoriteRef = Firestore.instance
       .collection('users')
       .document(document['userId'])
       .collection("notice")
-      .document(id);
+      .document(_id);
 
   //処理を1秒遅らせている。遅らせないとsavedDocumentIDが更新される前にこちらの処理をしてしまう。
   Future.delayed(new Duration(seconds: 1), () {
@@ -119,12 +119,13 @@ uploadFavorite(document) async {
         "documentId": document.documentID,
         "userId": firebaseUser.uid,
         "time": DateTime.now(),
-        "id": id,
+        "id": _id,
 
         //favoriteとフォローを識別するためにつけている
         "favorite": "fav",
 
-        "url": document["url"]
+        "url": document["url"],
+        "read": false
       });
     }
   });
