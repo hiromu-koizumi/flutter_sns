@@ -18,12 +18,12 @@ class _MyFavoritePageState extends State<MyFavoritePage> {
       appBar: AppBar(
         title: const Text(""),
       ),
-      body: favoritePage(),
+      body: _favoritePage(),
     );
   }
 
   //上タブの表示処理.ユーザーネームを表示させる
-  Widget favoritePage() {
+  Widget _favoritePage() {
     return Padding(
       padding: const EdgeInsets.only(top: 12.0),
       child: StreamBuilder<QuerySnapshot>(
@@ -68,7 +68,8 @@ class _MyFavoritePageState extends State<MyFavoritePage> {
             return Padding(
                 padding: EdgeInsets.only(top: 5, left: 5), child: Text('未登録'));
           } else {
-            return userName(context, document);
+            //
+            return UserName(document: document);
           }
         });
   }

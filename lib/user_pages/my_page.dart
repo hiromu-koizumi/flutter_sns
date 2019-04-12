@@ -52,7 +52,7 @@ class _MyPageState extends State<MyPages> {
   @override
   Widget build(BuildContext context) {
     if (firebaseUser.isAnonymous) {
-      return loginPage(context);
+      return LoginPage();
     } else {
       return Scaffold(
           appBar: AppBar(title: Text('マイページ'), actions: <Widget>[
@@ -117,8 +117,8 @@ class _MyPageState extends State<MyPages> {
     });
   }
 
-  Future<void>_updatePost()async{
-      Firestore.instance
+  Future<void> _updatePost() async {
+    Firestore.instance
         .collection('users')
         .document(firebaseUser.uid)
         .collection('posts')
@@ -126,7 +126,8 @@ class _MyPageState extends State<MyPages> {
         .startAfter([_myPostList[0]['time']])
         .limit(_getPostNumber)
         .snapshots()
-        .listen((data) => data.documents.forEach((doc) => _myPostList.insert(0,doc)));
+        .listen((data) =>
+            data.documents.forEach((doc) => _myPostList.insert(0, doc)));
     Future.delayed(new Duration(seconds: 4), () {
       print('読み込み中');
       _postsController.sink.add(_myPostList);
@@ -135,42 +136,42 @@ class _MyPageState extends State<MyPages> {
 
   postStream() {
     return RefreshIndicator(
-          //下に引っ張ると更新する処理
-          onRefresh: _updatePost,
-        child:StreamBuilder(
-        stream: _postsController.stream,
-        //streamが更新されるたびに呼ばれる
-        builder: (BuildContext context, snapshot) {
-          return Padding(
-              padding: EdgeInsets.only(bottom: 50),
-              child: NotificationListener<ScrollNotification>(
-                  onNotification: (ScrollNotification value) {
-                    if (value.metrics.extentAfter == 0.0) {
-                      //画面そこに到達したときの処理
-                      //一番最後に取得した投稿をfetchPostsに送っている。あちらでは、startAfterを使いその投稿より後の投稿を取得している
-                      fetchMyPosts(_myPostList[_myPostList.length - 1]);
-                    }
-                  },
-                  child: CustomScrollView(
-                    slivers: <Widget>[
-                      userProfileHeader(),
-                      SliverStaggeredGrid.countBuilder(
-                        crossAxisCount: 2,
-                        mainAxisSpacing: 4.0,
-                        crossAxisSpacing: 4.0,
-                        itemBuilder: (context, index) {
-                          DocumentSnapshot documentSnapshot =
-                              _myPostList[index];
+        //下に引っ張ると更新する処理
+        onRefresh: _updatePost,
+        child: StreamBuilder(
+            stream: _postsController.stream,
+            //streamが更新されるたびに呼ばれる
+            builder: (BuildContext context, snapshot) {
+              return Padding(
+                  padding: EdgeInsets.only(bottom: 50),
+                  child: NotificationListener<ScrollNotification>(
+                      onNotification: (ScrollNotification value) {
+                        if (value.metrics.extentAfter == 0.0) {
+                          //画面そこに到達したときの処理
+                          //一番最後に取得した投稿をfetchPostsに送っている。あちらでは、startAfterを使いその投稿より後の投稿を取得している
+                          fetchMyPosts(_myPostList[_myPostList.length - 1]);
+                        }
+                      },
+                      child: CustomScrollView(
+                        slivers: <Widget>[
+                          userProfileHeader(),
+                          SliverStaggeredGrid.countBuilder(
+                            crossAxisCount: 2,
+                            mainAxisSpacing: 4.0,
+                            crossAxisSpacing: 4.0,
+                            itemBuilder: (context, index) {
+                              DocumentSnapshot documentSnapshot =
+                                  _myPostList[index];
 
-                          return _myPost(context, documentSnapshot, index);
-                        },
-                        staggeredTileBuilder: (int index) =>
-                            const StaggeredTile.fit(1),
-                        itemCount: _myPostList.length,
-                      ),
-                    ],
-                  )));
-        }));
+                              return _myPost(context, documentSnapshot, index);
+                            },
+                            staggeredTileBuilder: (int index) =>
+                                const StaggeredTile.fit(1),
+                            itemCount: _myPostList.length,
+                          ),
+                        ],
+                      )));
+            }));
   }
 
   userProfileHeader() {

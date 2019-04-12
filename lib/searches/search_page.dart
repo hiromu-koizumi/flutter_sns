@@ -125,34 +125,34 @@ class _SearchPageState extends State<SearchPage> {
       ]),
     ));
   }
-}
 
-Widget buildResultCard(BuildContext context, data) {
-  return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-              settings: const RouteSettings(name: "/userPage"),
-              builder: (BuildContext context) =>
-                  //表示されている名前のユーザーIDをUserPageに渡している
-                  UserPage(data['userId'])),
-        );
-      },
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Material(
-            child: Image.network(
-              (data['photoUrl']),
-              width: 40,
-              height: 40,
-              fit: BoxFit.cover,
+  Widget buildResultCard(BuildContext context, data) {
+    return InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                settings: const RouteSettings(name: "/userPage"),
+                builder: (BuildContext context) =>
+                    //表示されている名前のユーザーIDをUserPageに渡している
+                    UserPage(data['userId'])),
+          );
+        },
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Material(
+              child: Image.network(
+                (data['photoUrl']),
+                width: 40,
+                height: 40,
+                fit: BoxFit.cover,
+              ),
+              borderRadius: BorderRadius.all(Radius.circular(20.0)),
+              clipBehavior: Clip.hardEdge,
             ),
-            borderRadius: BorderRadius.all(Radius.circular(20.0)),
-            clipBehavior: Clip.hardEdge,
-          ),
-          Text(data['userName']),
-        ],
-      ));
+            Text(data['userName']),
+          ],
+        ));
+  }
 }

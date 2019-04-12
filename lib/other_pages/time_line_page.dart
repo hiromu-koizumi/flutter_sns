@@ -326,7 +326,7 @@ class _TimeLineState extends State<TimeLine> //上タブのために必要
       children: <Widget>[
         Card(
           child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
-            userName(context, document),
+            UserName(document: document),
 
             //写真表示
             ImageUrl(imageUrl: document["url"]),

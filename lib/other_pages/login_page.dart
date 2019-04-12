@@ -8,188 +8,159 @@ import 'package:flutter_cos/main.dart';
 import 'package:flutter_cos/user_pages/my_page.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
+//いろんなページで使うから外出しといたほうが便利
 FirebaseUser firebaseUser;
-final FirebaseAuth _auth = FirebaseAuth.instance;
 
+class LoginPage extends StatefulWidget {
+  @override
+  _LoginPageState createState() => _LoginPageState();
+}
 
-//スプラッシュ画面
-//class Splash extends StatelessWidget {
-//  @override
-//  Widget build(BuildContext context) {
-//    //ログインしているか確認
-//    _getUser(context);
-//
-//    return Scaffold(
-//      //backgroundColor: Colors.pinkAccent,
-//      body: Center(
-//        child: FractionallySizedBox(
-//          //スプラッシュ画面の画像
-//          child: Image.asset('res/image/splash.jpg'),
-//          heightFactor: 0.4,
-//          widthFactor: 0.4,
-//        ),
-//      ),
-//    );
-//  }
-//}
-//
-////ログインしているか確認する処理
-//void _getUser(BuildContext context) async {
-//  try {
-//    firebaseUser = await _auth.currentUser();
-//    if (firebaseUser == null) {
-//      await _auth.signInAnonymously();
-//      firebaseUser = await _auth.currentUser();
-//    }
-//
-//    //タイムラインに画面遷移
-//    Navigator.pushReplacementNamed(context, "/bottombar");
-//  } catch (e) {
-//    //エラー時の処理
-//    Fluttertoast.showToast(msg: "Firebaseとの接続に失敗しました。");
-//  }
-//}
+class _LoginPageState extends State<LoginPage> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  String email, password;
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-String email, password;
-
-final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-
-Widget loginPage(BuildContext context) {
-  return Card(
-      child: Center(
-    child: new Form(
-      key: _formKey,
-      child: new SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: new Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            const SizedBox(height: 24.0),
-            new TextFormField(
-              // controller: emailInputController,
-              decoration: const InputDecoration(
-                icon: const Icon(Icons.mail),
-                border: const UnderlineInputBorder(),
-                labelText: 'Email',
-              ),
-              onSaved: (String value) {
-                email = value;
-              },
-              validator: (value) {
-                if (value.isEmpty) {
-                  return 'メールアドレスは必須入力です';
-                }
-                Pattern pattern =
-                    r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
-                RegExp regex = new RegExp(pattern);
-                if (!regex.hasMatch(value))
-                  return '無効なメールアドレスです';
-                else
-                  return null;
-              },
-            ),
-            const SizedBox(height: 24.0),
-            new TextFormField(
-              //  controller: passwordInputController,
-              decoration: new InputDecoration(
-                icon: const Icon(Icons.vpn_key),
-                border: const UnderlineInputBorder(),
-                labelText: 'Password',
-              ),
-              onSaved: (String value) {
-                password = value;
-              },
-              validator: (value) {
-                if (value.isEmpty) {
-                  return 'Passwordは必須入力です';
-                }
-                if (value.length < 6) {
-                  return 'Passwordは6桁以上です';
-                }
-              },
-              obscureText: true,
-            ),
-            const SizedBox(height: 24.0),
-            Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
-              RaisedButton(
-                child: const Text('ユーザー登録'),
-                onPressed: () {
-                  if (_formKey.currentState.validate()) {
-                    _formKey.currentState.save();
-                    _createUser(context, email, password);
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+        child: Center(
+      child: new Form(
+        key: _formKey,
+        child: new SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: new Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              const SizedBox(height: 24.0),
+              new TextFormField(
+                // controller: emailInputController,
+                decoration: const InputDecoration(
+                  icon: const Icon(Icons.mail),
+                  border: const UnderlineInputBorder(),
+                  labelText: 'Email',
+                ),
+                onSaved: (String value) {
+                  email = value;
+                },
+                validator: (value) {
+                  if (value.isEmpty) {
+                    return 'メールアドレスは必須入力です';
                   }
+                  Pattern pattern =
+                      r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
+                  RegExp regex = new RegExp(pattern);
+                  if (!regex.hasMatch(value))
+                    return '無効なメールアドレスです';
+                  else
+                    return null;
                 },
               ),
-              const SizedBox(width: 24.0),
-              RaisedButton(
-                child: const Text('ログイン'),
-                onPressed: () {
-                  if (_formKey.currentState.validate()) {
-                    _formKey.currentState.save();
-                    _signIn(context, email, password);
+              const SizedBox(height: 24.0),
+              new TextFormField(
+                //  controller: passwordInputController,
+                decoration: new InputDecoration(
+                  icon: const Icon(Icons.vpn_key),
+                  border: const UnderlineInputBorder(),
+                  labelText: 'Password',
+                ),
+                onSaved: (String value) {
+                  password = value;
+                },
+                validator: (value) {
+                  if (value.isEmpty) {
+                    return 'Passwordは必須入力です';
+                  }
+                  if (value.length < 6) {
+                    return 'Passwordは6桁以上です';
                   }
                 },
+                obscureText: true,
               ),
-            ]),
-          ],
+              const SizedBox(height: 24.0),
+              Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    RaisedButton(
+                      child: const Text('ユーザー登録'),
+                      onPressed: () {
+                        if (_formKey.currentState.validate()) {
+                          _formKey.currentState.save();
+                          _createUser(context, email, password);
+                        }
+                      },
+                    ),
+                    const SizedBox(width: 24.0),
+                    RaisedButton(
+                      child: const Text('ログイン'),
+                      onPressed: () {
+                        if (_formKey.currentState.validate()) {
+                          _formKey.currentState.save();
+                          _signIn(context, email, password);
+                        }
+                      },
+                    ),
+                  ]),
+            ],
+          ),
         ),
       ),
-    ),
-  ));
-}
-
-////メールアドレスとパスワードでログインする処理
-void _signIn(BuildContext context, String email, String password) async {
-  try {
-    //ログインしている
-    await _auth.signInWithEmailAndPassword(email: email, password: password);
-    firebaseUser = await _auth.currentUser();
-
-    Navigator.push(
-        context,
-        MaterialPageRoute(
-            settings: const RouteSettings(name: "/MyPage"),
-
-            //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
-            builder: (BuildContext context) => MyPages()));
-
-    //Navigator.pushNamedAndRemoveUntil(context, "/", (_) => false);
-  } catch (e) {
-    Fluttertoast.showToast(msg: "Firebaseのログインに失敗しました");
+    ));
   }
-}
+
+  ////メールアドレスとパスワードでログインする処理
+  void _signIn(BuildContext context, String email, String password) async {
+    try {
+      //ログインしている
+      await _auth.signInWithEmailAndPassword(email: email, password: password);
+      firebaseUser = await _auth.currentUser();
+
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              settings: const RouteSettings(name: "/MyPage"),
+
+              //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
+              builder: (BuildContext context) => MyPages()));
+
+      //Navigator.pushNamedAndRemoveUntil(context, "/", (_) => false);
+    } catch (e) {
+      Fluttertoast.showToast(msg: "Firebaseのログインに失敗しました");
+    }
+  }
 
 //メールアドレスとパスワードで新規ユーザー作成
-void _createUser(BuildContext context, String email, String password) async {
-  try {
-    //Authenticationにユーザーを作成している
-    await _auth.createUserWithEmailAndPassword(
-        email: email, password: password);
+  void _createUser(BuildContext context, String email, String password) async {
+    try {
+      //Authenticationにユーザーを作成している
+      await _auth.createUserWithEmailAndPassword(
+          email: email, password: password);
 
-    firebaseUser = await _auth.currentUser();
+      firebaseUser = await _auth.currentUser();
 
-    DocumentReference _userReference;
-    _userReference =
-        Firestore.instance.collection('users').document(firebaseUser.uid);
+      DocumentReference _userReference;
+      _userReference =
+          Firestore.instance.collection('users').document(firebaseUser.uid);
 
-    await _userReference.setData({
-      "userName": "NONAME",
-      "photoUrl":
-          "https://www.cosco-times.com/wp-content/uploads/2019/01/ponyoshida.png",
-      "userId": firebaseUser.uid,
-      "profile": ""
-    });
+      await _userReference.setData({
+        "userName": "NONAME",
+        "photoUrl":
+            "https://www.cosco-times.com/wp-content/uploads/2019/01/ponyoshida.png",
+        "userId": firebaseUser.uid,
+        "profile": ""
+      });
 
-    Navigator.push(
-        context,
-        MaterialPageRoute(
-            settings: const RouteSettings(name: "/MyPage"),
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              settings: const RouteSettings(name: "/MyPage"),
 
-            //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
-            builder: (BuildContext context) => MyPages()));
-    //Navigator.pushNamedAndRemoveUntil(context, "/MyPage", (_) => false);
-  } catch (e) {
-    Fluttertoast.showToast(
-        msg: "ごめんなさい。。このベールアドレス、パスワードは登録されています。もう一度別のもので試してみてください！！");
+              //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
+              builder: (BuildContext context) => MyPages()));
+      //Navigator.pushNamedAndRemoveUntil(context, "/MyPage", (_) => false);
+    } catch (e) {
+      Fluttertoast.showToast(
+          msg: "ごめんなさい。。このベールアドレス、パスワードは登録されています。もう一度別のもので試してみてください！！");
+    }
   }
 }

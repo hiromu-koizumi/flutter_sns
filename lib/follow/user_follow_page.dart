@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cos/parts/user_name_bar.dart';
 
-
 //follow_pageだけでこのファイルなくせると思う。
 class UserFollowPage extends StatefulWidget {
   //MyHomePage({Key key, this.title}) : super(key: key);
@@ -18,7 +17,6 @@ class UserFollowPage extends StatefulWidget {
 
 class _UserFollowPageState extends State<UserFollowPage>
     with SingleTickerProviderStateMixin {
-
   final List<Tab> tabs = <Tab>[
     Tab(text: 'フォロー'),
     Tab(text: 'フォロワー'),
@@ -32,17 +30,15 @@ class _UserFollowPageState extends State<UserFollowPage>
     _tabController = TabController(vsync: this, length: tabs.length);
   }
 
-
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-      //  title: const Text(""),
+        //  title: const Text(""),
         title: TabBar(
           controller: _tabController,
           tabs: tabs,
         ),
-        actions: <Widget>[
-        ],
+        actions: <Widget>[],
       ),
 
       //上タブ表示させる処理
@@ -55,17 +51,15 @@ class _UserFollowPageState extends State<UserFollowPage>
     );
   }
 
-
   //上タブの表示処理.ユーザーネームを表示させる
   Widget createTab(Tab tab) {
     switch (tab.text) {
       case 'フォロー':
         return Padding(
-
           padding: const EdgeInsets.only(top: 12.0),
           child: StreamBuilder<QuerySnapshot>(
 
-            //followしている人の情報を_followingFollowersNameに送る。_followingFollowersNameでは、その情報からユーザーIDを取り出し、IDを使いユーザーネームを取り出し表示している
+              //followしている人の情報を_followingFollowersNameに送る。_followingFollowersNameでは、その情報からユーザーIDを取り出し、IDを使いユーザーネームを取り出し表示している
               stream: Firestore.instance
                   .collection('users')
                   .document(widget.userId)
@@ -82,19 +76,17 @@ class _UserFollowPageState extends State<UserFollowPage>
 
                   //投稿を表示する処理にデータを送っている
                   itemBuilder: (context, index) =>
-                      userName(context, snapshot.data.documents[index]),
+                      UserName(document: snapshot.data.documents[index]),
                 );
-
               }),
         );
         break;
       case 'フォロワー':
         return Padding(
-
           padding: const EdgeInsets.only(top: 12.0),
           child: StreamBuilder<QuerySnapshot>(
 
-            //orderByで新しく投稿したものを上位に表示させている。投稿に保存されているtimeを見て判断している.
+              //orderByで新しく投稿したものを上位に表示させている。投稿に保存されているtimeを見て判断している.
               stream: Firestore.instance
                   .collection('users')
                   .document(widget.userId)
@@ -111,13 +103,11 @@ class _UserFollowPageState extends State<UserFollowPage>
 
                   //投稿を表示する処理にデータを送っている
                   itemBuilder: (context, index) =>
-                      userName(context, snapshot.data.documents[index]),
+                      UserName(document: snapshot.data.documents[index]),
                 );
-
               }),
         );
         break;
     }
   }
-
 }

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cos/favorites/build_favorite_button.dart';
 import 'package:flutter_cos/other_pages/login_page.dart';
 import 'dart:async';
 
@@ -27,24 +28,11 @@ class FavoriteButton extends StatelessWidget {
           builder:
               (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
             if (!snapshot.hasData) return const Text('Loading...');
-            if (snapshot.data.documents.length == 0)
-              return FlatButton(
-                child: Icon(
-                  Icons.favorite_border,
-                  color: Colors.pinkAccent,
-                ),
-                onPressed: () {
-                  print("いいねボタンを押しました");
+            final isFavorite = snapshot.data.documents.isNotEmpty;
 
-                  //お気に入りボタン押した投稿のdocumentIDと時間を保存する処理
-                  uploadFavorite(document);
-                },
-              );
-            return FlatButton(
-              child: Icon(
-                Icons.favorite,
-                color: Colors.pinkAccent,
-              ),
+            //引数にonPressedの処理を入れている
+            return BuildFavoriteButton(
+              isFavorite: isFavorite,
               onPressed: () {
                 print("いいねボタンを押しました");
 
@@ -55,89 +43,89 @@ class FavoriteButton extends StatelessWidget {
           }),
     );
   }
-}
 
-uploadFavorite(document) async {
-  var _savedDocumentID;
+  uploadFavorite(document) async {
+    var _savedDocumentID;
 
-  //ここの処理もっと良い方法あるはず。
-  Firestore.instance
-      .collection('users')
-      .document(firebaseUser.uid)
-      .collection("favorite")
-      .where("documentId", isEqualTo: document.documentID)
-      .snapshots()
-      //上のコードで十分なはずだがエラー出る。上も一応動く。forEach使う必要ない
-      .listen((data) => data.documents.forEach((doc) =>
+    //ここの処理もっと良い方法あるはず。
+    Firestore.instance
+        .collection('users')
+        .document(firebaseUser.uid)
+        .collection("favorite")
+        .where("documentId", isEqualTo: document.documentID)
+        .snapshots()
+        //上のコードで十分なはずだがエラー出る。上も一応動く。forEach使う必要ない
+        .listen((data) => data.documents.forEach((doc) =>
 
-          //空の時nullに上書きされない
-          _savedDocumentID = doc["documentId"]));
+            //空の時nullに上書きされない
+            _savedDocumentID = doc["documentId"]));
 
-  print("saveの$_savedDocumentID");
+    print("saveの$_savedDocumentID");
 
-  DocumentReference _favoritedUserRef;
-  DocumentReference _beFavoritedUserRef;
-  DocumentReference _noticeFavoriteRef;
+    DocumentReference _favoritedUserRef;
+    DocumentReference _beFavoritedUserRef;
+    DocumentReference _noticeFavoriteRef;
 
-  //document.documentIDはいいねした投稿のドキュメントID
+    //document.documentIDはいいねした投稿のドキュメントID
 
-  //いいねした人のDBにいいねした投稿のドキュメントIDを保存。いいね押したことあるか判定するために必要
-  _favoritedUserRef = Firestore.instance
-      .collection('users')
-      .document(firebaseUser.uid)
-      .collection("favorite")
-      .document(document.documentID);
+    //いいねした人のDBにいいねした投稿のドキュメントIDを保存。いいね押したことあるか判定するために必要
+    _favoritedUserRef = Firestore.instance
+        .collection('users')
+        .document(firebaseUser.uid)
+        .collection("favorite")
+        .document(document.documentID);
 
-  //いいねされた人のDBにいいねした人のユーザーIdなどを保存
-  _beFavoritedUserRef = Firestore.instance
-      .collection('users')
-      .document(document['userId'])
-      .collection("posts")
-      .document(document.documentID)
-      .collection('beFavorited')
-      //削除できるようにユーザーIdを指定している
-      .document(firebaseUser.uid);
+    //いいねされた人のDBにいいねした人のユーザーIdなどを保存
+    _beFavoritedUserRef = Firestore.instance
+        .collection('users')
+        .document(document['userId'])
+        .collection("posts")
+        .document(document.documentID)
+        .collection('beFavorited')
+        //削除できるようにユーザーIdを指定している
+        .document(firebaseUser.uid);
 
-  //noticeに既読したことを保存するためにidが必要
-  final String uuid = Uuid().v1();
-  final _id = uuid;
+    //noticeに既読したことを保存するためにidが必要
+    final String uuid = Uuid().v1();
+    final _id = uuid;
 
-  _noticeFavoriteRef = Firestore.instance
-      .collection('users')
-      .document(document['userId'])
-      .collection("notice")
-      .document(_id);
+    _noticeFavoriteRef = Firestore.instance
+        .collection('users')
+        .document(document['userId'])
+        .collection("notice")
+        .document(_id);
 
-  //処理を1秒遅らせている。遅らせないとsavedDocumentIDが更新される前にこちらの処理をしてしまう。
-  Future.delayed(new Duration(seconds: 1), () {
-    if (_savedDocumentID == document.documentID) {
-      print("saveの$_savedDocumentID");
-      print('消去した');
-      _favoritedUserRef.delete();
-      _beFavoritedUserRef.delete();
-    } else {
-      print('saveした${_savedDocumentID}');
-      _favoritedUserRef.setData({
-        "documentId": document.documentID,
-        "time": DateTime.now(),
-      });
-      _beFavoritedUserRef.setData({
-        "documentId": document.documentID,
-        "userId": firebaseUser.uid,
-        "time": DateTime.now(),
-      });
-      _noticeFavoriteRef.setData({
-        "documentId": document.documentID,
-        "userId": firebaseUser.uid,
-        "time": DateTime.now(),
-        "id": _id,
+    //処理を1秒遅らせている。遅らせないとsavedDocumentIDが更新される前にこちらの処理をしてしまう。
+    Future.delayed(new Duration(seconds: 1), () {
+      if (_savedDocumentID == document.documentID) {
+        print("saveの$_savedDocumentID");
+        print('消去した');
+        _favoritedUserRef.delete();
+        _beFavoritedUserRef.delete();
+      } else {
+        print('saveした${_savedDocumentID}');
+        _favoritedUserRef.setData({
+          "documentId": document.documentID,
+          "time": DateTime.now(),
+        });
+        _beFavoritedUserRef.setData({
+          "documentId": document.documentID,
+          "userId": firebaseUser.uid,
+          "time": DateTime.now(),
+        });
+        _noticeFavoriteRef.setData({
+          "documentId": document.documentID,
+          "userId": firebaseUser.uid,
+          "time": DateTime.now(),
+          "id": _id,
 
-        //favoriteとフォローを識別するためにつけている
-        "favorite": "fav",
+          //favoriteとフォローを識別するためにつけている
+          "favorite": "fav",
 
-        "url": document["url"],
-        "read": false
-      });
-    }
-  });
+          "url": document["url"],
+          "read": false
+        });
+      }
+    });
+  }
 }

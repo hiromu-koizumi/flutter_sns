@@ -72,7 +72,7 @@ class _PostDetailsState extends State<PostDetails> {
       padding: const EdgeInsets.only(bottom: 50.0),
       child: Card(
         child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
-          userName(context, documentSnapshot),
+          UserName(document: documentSnapshot),
 
           //写真表示
           ImageUrl(imageUrl: url),
