@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-class BuildFavoriteButton extends StatelessWidget {
+class CoscoFavoriteButton extends StatelessWidget {
   final bool isFavorite;
   final VoidCallback onPressed;
-  const BuildFavoriteButton({
+  const CoscoFavoriteButton({
     Key key,
     @required this.isFavorite,
     @required this.onPressed,

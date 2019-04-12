@@ -31,7 +31,7 @@ class FavoriteButton extends StatelessWidget {
             final isFavorite = snapshot.data.documents.isNotEmpty;
 
             //引数にonPressedの処理を入れている
-            return BuildFavoriteButton(
+            return CoscoFavoriteButton(
               isFavorite: isFavorite,
               onPressed: () {
                 print("いいねボタンを押しました");
