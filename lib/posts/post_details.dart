@@ -56,24 +56,27 @@ class _PostDetailsState extends State<PostDetails> {
     final tagList = _data.tagList;
     final time = _data.time;
 
+    final documentSnapshot = widget.document;
+
+    final userNameRow = UserNameRow(context, documentSnapshot);
+
     return Scaffold(
       appBar: AppBar(title: const Text('')),
       body: SingleChildScrollView(
-        child: buildPadding(context, url, comment, tagList, time),
+        child: buildPadding(context, userNameRow, url, comment, tagList, time),
       ),
     );
   }
 
-  Widget buildPadding(BuildContext context, String url, String comment,
-      List<dynamic> tagList, DateTime time) {
+  Widget buildPadding(BuildContext context, Widget userNameRow, String url,
+      String comment, List<dynamic> tagList, DateTime time) {
     final documentSnapshot = widget.document;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 50.0),
       child: Card(
         child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
-          userName(context, documentSnapshot),
-
+          userNameRow,
           //写真表示
           ImageUrl(imageUrl: url),
 

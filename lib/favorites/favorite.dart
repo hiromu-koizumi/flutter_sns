@@ -27,32 +27,26 @@ class FavoriteButton extends StatelessWidget {
           builder:
               (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
             if (!snapshot.hasData) return const Text('Loading...');
-            if (snapshot.data.documents.length == 0)
-              return FlatButton(
-                child: Icon(
-                  Icons.favorite_border,
-                  color: Colors.pinkAccent,
-                ),
-                onPressed: () {
-                  print("いいねボタンを押しました");
+            final isFavorite = snapshot.data.documents.isNotEmpty;
 
-                  //お気に入りボタン押した投稿のdocumentIDと時間を保存する処理
-                  uploadFavorite(document);
-                },
-              );
-            return FlatButton(
-              child: Icon(
-                Icons.favorite,
-                color: Colors.pinkAccent,
-              ),
-              onPressed: () {
-                print("いいねボタンを押しました");
+            return _buildBorderFlatButton(isFavorite, () {
+              print("いいねボタンを押しました");
 
-                //お気に入りボタン押した投稿のdocumentIDと時間を保存する処理
-                uploadFavorite(document);
-              },
-            );
+              //お気に入りボタン押した投稿のdocumentIDと時間を保存する処理
+              uploadFavorite(document);
+            });
           }),
+    );
+  }
+
+  Widget _buildBorderFlatButton(bool isFavorite, VoidCallback onPressed) {
+    final favoriteIcon = isFavorite ? Icons.favorite : Icons.favorite_border;
+    return FlatButton(
+      child: Icon(
+        favoriteIcon,
+        color: Colors.pinkAccent,
+      ),
+      onPressed: onPressed,
     );
   }
 }

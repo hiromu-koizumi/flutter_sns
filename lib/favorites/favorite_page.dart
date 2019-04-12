@@ -68,7 +68,7 @@ class _MyFavoritePageState extends State<MyFavoritePage> {
             return Padding(
                 padding: EdgeInsets.only(top: 5, left: 5), child: Text('未登録'));
           } else {
-            return userName(context, document);
+            return UserNameRow(context, document);
           }
         });
   }

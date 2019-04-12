@@ -57,7 +57,7 @@ class _MyPostDetailsState extends State<MyPostDetails> {
                 child: Card(
                   child:
                       Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
-                    userName(context, widget.document),
+                    UserNameRow(context, widget.document),
 
                     //写真表示
                     ImageUrl(imageUrl: _data.url),

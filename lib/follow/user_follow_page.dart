@@ -82,7 +82,7 @@ class _UserFollowPageState extends State<UserFollowPage>
 
                   //投稿を表示する処理にデータを送っている
                   itemBuilder: (context, index) =>
-                      userName(context, snapshot.data.documents[index]),
+                      UserNameRow(context, snapshot.data.documents[index]),
                 );
 
               }),
@@ -111,7 +111,7 @@ class _UserFollowPageState extends State<UserFollowPage>
 
                   //投稿を表示する処理にデータを送っている
                   itemBuilder: (context, index) =>
-                      userName(context, snapshot.data.documents[index]),
+                      UserNameRow(context, snapshot.data.documents[index]),
                 );
 
               }),
