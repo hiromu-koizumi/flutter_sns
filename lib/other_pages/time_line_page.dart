@@ -68,7 +68,6 @@ class _TimeLineState extends State<TimeLine> //上タブのために必要
     });
   }
 
-
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -147,22 +146,24 @@ class _TimeLineState extends State<TimeLine> //上タブのために必要
       _followPostLoading = false;
     });
   }
-  Future<void>_updateNewPost()async{
-      Firestore.instance
+
+  Future<void> _updateNewPost() async {
+    Firestore.instance
         .collection('posts')
         .orderBy("time", descending: false)
         .startAfter([_postList[0]['time']])
         .limit(10)
         .snapshots()
-        .listen((data) => data.documents.forEach((doc) => _postList.insert(0,doc)));
+        .listen((data) =>
+            data.documents.forEach((doc) => _postList.insert(0, doc)));
     Future.delayed(new Duration(seconds: 4), () {
       print('読み込み中');
       _newPostsController.sink.add(_postList);
     });
   }
 
-  Future<void>_updateFollowPost()async{
-      Firestore.instance
+  Future<void> _updateFollowPost() async {
+    Firestore.instance
         .collection('users')
         .document(firebaseUser.uid)
         .collection("followingPosts")
@@ -170,118 +171,121 @@ class _TimeLineState extends State<TimeLine> //上タブのために必要
         .startAfter([_followPostList[0]['time']])
         .limit(10)
         .snapshots()
-        .listen((data) => data.documents.forEach((doc) => _followPostList.insert(0,doc)));
+        .listen((data) =>
+            data.documents.forEach((doc) => _followPostList.insert(0, doc)));
     Future.delayed(new Duration(seconds: 4), () {
       print('読み込み中');
       _followPostsController.sink.add(_followPostList);
     });
   }
+
   //上タブの表示処理
   Widget createTab(Tab tab) {
     switch (tab.text) {
       case '新着':
         return RefreshIndicator(
-          //下に引っ張ると更新する処理
-          onRefresh: _updateNewPost,
-        child: StreamBuilder(
-          stream: _newPostsController.stream,
-          builder: (context, snapshot) {
-            //画面底を感知する
-            return 
-            NotificationListener<ScrollNotification>(
+            //下に引っ張ると更新する処理
+            onRefresh: _updateNewPost,
+            child: StreamBuilder(
+              stream: _newPostsController.stream,
+              builder: (context, snapshot) {
+                //画面底を感知する
+                return NotificationListener<ScrollNotification>(
+                    onNotification: (ScrollNotification value) {
+                      if (value.metrics.extentAfter == 0.0) {
+                        //画面そこに到達したときの処理
+                        //一番最後に取得した投稿をfetchPostsに送っている。あちらでは、startAfterを使いその投稿より後の投稿を取得している
+                        fetchPosts(_postList[_postList.length - 1]);
+                      }
+                    },
+                    child: CustomScrollView(
+                      slivers: <Widget>[
+                        SliverStaggeredGrid.countBuilder(
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 4.0,
+                          crossAxisSpacing: 4.0,
+                          itemBuilder: (context, index) {
+                            DocumentSnapshot documentSnapshot =
+                                _postList[index];
+
+                            return _newPost(context, documentSnapshot, index);
+                          },
+                          staggeredTileBuilder: (int index) =>
+                              const StaggeredTile.fit(1),
+                          itemCount: _postList.length,
+                        ),
+                      ],
+                    ));
+              },
+            ));
+      // StreamBuilder(
+      //   stream: _newPostsController.stream,
+      //   builder: (context, snapshot) {
+      //     //画面底を感知する
+      //     return NotificationListener<ScrollNotification>(
+      //         onNotification: (ScrollNotification value) {
+      //           if (value.metrics.extentAfter == 0.0) {
+      //             //画面そこに到達したときの処理
+      //             //一番最後に取得した投稿をfetchPostsに送っている。あちらでは、startAfterを使いその投稿より後の投稿を取得している
+      //             fetchPosts(_postList[_postList.length - 1]);
+      //           }
+      //         },
+      //         child: CustomScrollView(
+      //           slivers: <Widget>[
+      //             SliverStaggeredGrid.countBuilder(
+      //               crossAxisCount: 2,
+      //               mainAxisSpacing: 4.0,
+      //               crossAxisSpacing: 4.0,
+      //               itemBuilder: (context, index) {
+      //                 DocumentSnapshot documentSnapshot = _postList[index];
+
+      //                 return _newPost(context, documentSnapshot, index);
+      //               },
+      //               staggeredTileBuilder: (int index) =>
+      //                   const StaggeredTile.fit(1),
+      //               itemCount: _postList.length,
+      //             ),
+      //           ],
+      //         ));
+      //   },
+      // );
+
+      case 'フォロー':
+        return RefreshIndicator(
+            //下に引っ張ると更新する処理
+            onRefresh: _updateFollowPost,
+            child: NotificationListener<ScrollNotification>(
                 onNotification: (ScrollNotification value) {
                   if (value.metrics.extentAfter == 0.0) {
                     //画面そこに到達したときの処理
                     //一番最後に取得した投稿をfetchPostsに送っている。あちらでは、startAfterを使いその投稿より後の投稿を取得している
-                    fetchPosts(_postList[_postList.length - 1]);
+                    fetchFollowPosts(
+                        _followPostList[_followPostList.length - 1]);
                   }
                 },
-                child: CustomScrollView(
-                  slivers: <Widget>[
-                    SliverStaggeredGrid.countBuilder(
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 4.0,
-                      crossAxisSpacing: 4.0,
-                      itemBuilder: (context, index) {
-                        DocumentSnapshot documentSnapshot = _postList[index];
+                child: StreamBuilder(
+                    stream: _followPostsController.stream,
+                    builder: (BuildContext context, snapshot) {
+                      //if (!snapshot.hasData) return const Text('Loading...');
 
-                        return _newPost(context, documentSnapshot, index);
-                      },
-                      staggeredTileBuilder: (int index) =>
-                          const StaggeredTile.fit(1),
-                      itemCount: _postList.length,
-                    ),
-                  ],
-                ));
-          },
-        )
-        );
-        // StreamBuilder(
-        //   stream: _newPostsController.stream,
-        //   builder: (context, snapshot) {
-        //     //画面底を感知する
-        //     return NotificationListener<ScrollNotification>(
-        //         onNotification: (ScrollNotification value) {
-        //           if (value.metrics.extentAfter == 0.0) {
-        //             //画面そこに到達したときの処理
-        //             //一番最後に取得した投稿をfetchPostsに送っている。あちらでは、startAfterを使いその投稿より後の投稿を取得している
-        //             fetchPosts(_postList[_postList.length - 1]);
-        //           }
-        //         },
-        //         child: CustomScrollView(
-        //           slivers: <Widget>[
-        //             SliverStaggeredGrid.countBuilder(
-        //               crossAxisCount: 2,
-        //               mainAxisSpacing: 4.0,
-        //               crossAxisSpacing: 4.0,
-        //               itemBuilder: (context, index) {
-        //                 DocumentSnapshot documentSnapshot = _postList[index];
+                      return Padding(
+                          padding: EdgeInsets.only(bottom: 50),
+                          child: ListView.builder(
+                            itemCount: _followPostList.length,
+                            padding: const EdgeInsets.only(top: 10.0),
 
-        //                 return _newPost(context, documentSnapshot, index);
-        //               },
-        //               staggeredTileBuilder: (int index) =>
-        //                   const StaggeredTile.fit(1),
-        //               itemCount: _postList.length,
-        //             ),
-        //           ],
-        //         ));
-        //   },
-        // );
+                            //投稿を表示する処理にデータを送っている
+                            itemBuilder: (context, index) {
+                              DocumentSnapshot documentSnapshot =
+                                  _followPostList[index];
 
-      case 'フォロー':
-        return RefreshIndicator(
-          //下に引っ張ると更新する処理
-          onRefresh: _updateFollowPost,
-        child:NotificationListener<ScrollNotification>(
-            onNotification: (ScrollNotification value) {
-              if (value.metrics.extentAfter == 0.0) {
-                //画面そこに到達したときの処理
-                //一番最後に取得した投稿をfetchPostsに送っている。あちらでは、startAfterを使いその投稿より後の投稿を取得している
-                fetchFollowPosts(_followPostList[_followPostList.length - 1]);
-              }
-            },
-            child: StreamBuilder(
-                stream: _followPostsController.stream,
-                builder: (BuildContext context, snapshot) {
-                  //if (!snapshot.hasData) return const Text('Loading...');
-
-                  return Padding(
-                      padding: EdgeInsets.only(bottom: 50),
-                      child: ListView.builder(
-                        itemCount: _followPostList.length,
-                        padding: const EdgeInsets.only(top: 10.0),
-
-                        //投稿を表示する処理にデータを送っている
-                        itemBuilder: (context, index) {
-                          DocumentSnapshot documentSnapshot =
-                              _followPostList[index];
-
-                          return _followPost(context, documentSnapshot, index);
-                        },
-                      ));
-                })));
+                              return _followPost(
+                                  context, documentSnapshot, index);
+                            },
+                          ));
+                    })));
         break;
-        }
+    }
   }
 
   //投稿表示する処理
@@ -365,7 +369,7 @@ class _TimeLineState extends State<TimeLine> //上タブのために必要
                                   padding: EdgeInsets.all(5),
                                   child: Text(item))))
                           .toList()),
-                  favoriteButton(document),
+                  FavoriteButton(document: document),
                   FlatButton(
                     child: const Icon(Icons.comment),
                     onPressed: () {

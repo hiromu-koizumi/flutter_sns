@@ -5,22 +5,44 @@ import 'dart:async';
 
 import 'package:uuid/uuid.dart';
 
-favoriteButton(document) {
-  return Padding(
-    padding: const EdgeInsets.only(top: 1),
-    child: StreamBuilder<QuerySnapshot>(
-        stream: Firestore.instance
-            .collection('users')
-            .document(firebaseUser.uid)
-            .collection("favorite")
-            .where("documentId", isEqualTo: document.documentID)
-            .snapshots(),
-        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          if (!snapshot.hasData) return const Text('Loading...');
-          if (snapshot.data.documents.length == 0)
+class FavoriteButton extends StatelessWidget {
+  final DocumentSnapshot document;
+
+  const FavoriteButton({
+    Key key,
+    @required this.document,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 1),
+      child: StreamBuilder<QuerySnapshot>(
+          stream: Firestore.instance
+              .collection('users')
+              .document(firebaseUser.uid)
+              .collection("favorite")
+              .where("documentId", isEqualTo: document.documentID)
+              .snapshots(),
+          builder:
+              (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+            if (!snapshot.hasData) return const Text('Loading...');
+            if (snapshot.data.documents.length == 0)
+              return FlatButton(
+                child: Icon(
+                  Icons.favorite_border,
+                  color: Colors.pinkAccent,
+                ),
+                onPressed: () {
+                  print("いいねボタンを押しました");
+
+                  //お気に入りボタン押した投稿のdocumentIDと時間を保存する処理
+                  uploadFavorite(document);
+                },
+              );
             return FlatButton(
               child: Icon(
-                Icons.favorite_border,
+                Icons.favorite,
                 color: Colors.pinkAccent,
               ),
               onPressed: () {
@@ -30,20 +52,9 @@ favoriteButton(document) {
                 uploadFavorite(document);
               },
             );
-          return FlatButton(
-            child: Icon(
-              Icons.favorite,
-              color: Colors.pinkAccent,
-            ),
-            onPressed: () {
-              print("いいねボタンを押しました");
-
-              //お気に入りボタン押した投稿のdocumentIDと時間を保存する処理
-              uploadFavorite(document);
-            },
-          );
-        }),
-  );
+          }),
+    );
+  }
 }
 
 uploadFavorite(document) async {
@@ -70,7 +81,7 @@ uploadFavorite(document) async {
 
   //document.documentIDはいいねした投稿のドキュメントID
 
-  //いいねした人のDBにいいねした投稿のドキュメントIDを保存
+  //いいねした人のDBにいいねした投稿のドキュメントIDを保存。いいね押したことあるか判定するために必要
   _favoritedUserRef = Firestore.instance
       .collection('users')
       .document(firebaseUser.uid)

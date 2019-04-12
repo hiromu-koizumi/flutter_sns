@@ -52,80 +52,82 @@ class _PostDetailsState extends State<PostDetails> {
         .document(widget.document.documentID);
 
     return Scaffold(
-        appBar: AppBar(title: const Text('')),
-        body: SingleChildScrollView(
-            child: Padding(
-                padding: const EdgeInsets.only(bottom: 50.0),
-                child: Card(
-                  child:
-                      Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
-                    userName(context, widget.document),
+      appBar: AppBar(title: const Text('')),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 50.0),
+          child: Card(
+            child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
+              userName(context, widget.document),
 
-                    //写真表示
-                    ImageUrl(imageUrl: _data.url),
+              //写真表示
+              ImageUrl(imageUrl: _data.url),
 
-                    ListTile(
-                      //leading: const Icon(Icons.android),
-                      title: Text(_data.comment),
+              ListTile(
+                //leading: const Icon(Icons.android),
+                title: Text(_data.comment),
 
-                      //substringで表示する時刻を短縮している
-                      subtitle: Text(_data.time.toString().substring(0, 10)),
-                      //trailing: Text(_data.tagList.toString()),
+                //substringで表示する時刻を短縮している
+                subtitle: Text(_data.time.toString().substring(0, 10)),
+                //trailing: Text(_data.tagList.toString()),
+              ),
+
+              ButtonTheme.bar(
+                child: ButtonBar(
+                  children: <Widget>[
+                    Row(
+                        children: _data.tagList
+                            .map((item) => InkWell(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        settings: const RouteSettings(
+                                            name: "/postDetails"),
+
+                                        //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
+                                        builder: (BuildContext context) =>
+                                            SearchResultPage(item)),
+                                  );
+                                },
+                                child: Container(
+                                    decoration: ShapeDecoration(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.all(
+                                          Radius.circular(5.0),
+                                        ),
+                                      ),
+                                      color: Colors.black12,
+                                    ),
+                                    margin: EdgeInsets.only(right: 5, left: 5),
+                                    padding: EdgeInsets.all(5),
+                                    child: Text(item))))
+                            .toList()),
+                    FavoriteButton(
+                      document: widget.document,
                     ),
+                    FlatButton(
+                      child: const Icon(Icons.comment),
+                      onPressed: () {
+                        print("コメントボタンを押しました");
 
-                    ButtonTheme.bar(
-                      child: ButtonBar(
-                        children: <Widget>[
-                          Row(
-                              children: _data.tagList
-                                  .map((item) => InkWell(
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              settings: const RouteSettings(
-                                                  name: "/postDetails"),
-
-                                              //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
-                                              builder: (BuildContext context) =>
-                                                  SearchResultPage(item)),
-                                        );
-                                      },
-                                      child: Container(
-                                          decoration: ShapeDecoration(
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.all(
-                                                Radius.circular(5.0),
-                                              ),
-                                            ),
-                                            color: Colors.black12,
-                                          ),
-                                          margin: EdgeInsets.only(
-                                              right: 5, left: 5),
-                                          padding: EdgeInsets.all(5),
-                                          child: Text(item))))
-                                  .toList()),
-                          favoriteButton(widget.document),
-                          FlatButton(
-                            child: const Icon(Icons.comment),
-                            onPressed: () {
-                              print("コメントボタンを押しました");
-
-                              //コメントページに画面遷移
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    settings:
-                                        const RouteSettings(name: "/comment"),
-                                    builder: (BuildContext context) =>
-                                        MessagePage(widget.document)),
-                              );
-                            },
-                          )
-                        ],
-                      ),
+                        //コメントページに画面遷移
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              settings: const RouteSettings(name: "/comment"),
+                              builder: (BuildContext context) =>
+                                  MessagePage(widget.document)),
+                        );
+                      },
                     )
-                  ]),
-                ))));
+                  ],
+                ),
+              )
+            ]),
+          ),
+        ),
+      ),
+    );
   }
 }
