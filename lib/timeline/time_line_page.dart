@@ -1,14 +1,11 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cos/favorites/favorite.dart';
 import 'package:flutter_cos/other_pages/login_page.dart';
-import 'package:flutter_cos/parts/Image_url.dart';
-import 'package:flutter_cos/other_pages/message_page.dart';
-import 'package:flutter_cos/posts/post_details.dart';
+import 'package:flutter_cos/parts/circular_progress_indicator.dart';
 import 'package:flutter_cos/posts/post_page.dart';
-import 'package:flutter_cos/parts/user_name_bar.dart';
-import 'package:flutter_cos/searches/search_result_page.dart';
+import 'package:flutter_cos/timeline/follow_post.dart';
+import 'package:flutter_cos/timeline/new_post.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 class TimeLine extends StatefulWidget {
@@ -64,7 +61,7 @@ class _TimeLineState extends State<TimeLine> //上タブのために必要
     Future.delayed(new Duration(seconds: 4), () {
       _newPostsController.add(_postList);
       _followPostsController.add(_followPostList);
-      _loadCheckFollowPost = _followPostList.length - _getPostNumber;
+      _loadCheckFollowPost = _followPostList.length % _getPostNumber;
     });
   }
 
@@ -142,7 +139,7 @@ class _TimeLineState extends State<TimeLine> //上タブのために必要
     Future.delayed(new Duration(seconds: 4), () {
       print('読み込み中');
       _followPostsController.add(_followPostList);
-      _loadCheckFollowPost = _followPostList.length - _getPostNumber;
+      _loadCheckFollowPost = _followPostList.length % _getPostNumber;
       _followPostLoading = false;
     });
   }
@@ -154,8 +151,11 @@ class _TimeLineState extends State<TimeLine> //上タブのために必要
         .startAfter([_postList[0]['time']])
         .limit(10)
         .snapshots()
-        .listen((data) =>
-            data.documents.forEach((doc) => _postList.insert(0, doc)));
+        //startAfterを使っているが更新時に同じ投稿を取得してしまうので以下の制約を追加
+        .listen((data) => data.documents.isNotEmpty &&
+                data.documents[0]["documentId"] != _postList[0]["documentId"]
+            ? data.documents.forEach((doc) => _postList.insert(0, doc))
+            : print("新規投稿無し"));
     Future.delayed(new Duration(seconds: 4), () {
       print('読み込み中');
       _newPostsController.sink.add(_postList);
@@ -208,7 +208,11 @@ class _TimeLineState extends State<TimeLine> //上タブのために必要
                             DocumentSnapshot documentSnapshot =
                                 _postList[index];
 
-                            return _newPost(context, documentSnapshot, index);
+                            return index == _postList.length - 1
+                                ? Indicator()
+                                : NewPost(
+                                    document: documentSnapshot,
+                                  );
                           },
                           staggeredTileBuilder: (int index) =>
                               const StaggeredTile.fit(1),
@@ -218,45 +222,14 @@ class _TimeLineState extends State<TimeLine> //上タブのために必要
                     ));
               },
             ));
-      // StreamBuilder(
-      //   stream: _newPostsController.stream,
-      //   builder: (context, snapshot) {
-      //     //画面底を感知する
-      //     return NotificationListener<ScrollNotification>(
-      //         onNotification: (ScrollNotification value) {
-      //           if (value.metrics.extentAfter == 0.0) {
-      //             //画面そこに到達したときの処理
-      //             //一番最後に取得した投稿をfetchPostsに送っている。あちらでは、startAfterを使いその投稿より後の投稿を取得している
-      //             fetchPosts(_postList[_postList.length - 1]);
-      //           }
-      //         },
-      //         child: CustomScrollView(
-      //           slivers: <Widget>[
-      //             SliverStaggeredGrid.countBuilder(
-      //               crossAxisCount: 2,
-      //               mainAxisSpacing: 4.0,
-      //               crossAxisSpacing: 4.0,
-      //               itemBuilder: (context, index) {
-      //                 DocumentSnapshot documentSnapshot = _postList[index];
-
-      //                 return _newPost(context, documentSnapshot, index);
-      //               },
-      //               staggeredTileBuilder: (int index) =>
-      //                   const StaggeredTile.fit(1),
-      //               itemCount: _postList.length,
-      //             ),
-      //           ],
-      //         ));
-      //   },
-      // );
-
       case 'フォロー':
         return RefreshIndicator(
             //下に引っ張ると更新する処理
             onRefresh: _updateFollowPost,
             child: NotificationListener<ScrollNotification>(
                 onNotification: (ScrollNotification value) {
-                  if (value.metrics.extentAfter == 0.0) {
+                  if (value.metrics.extentAfter == 0.0 &&
+                      _loadCheckFollowPost == 0) {
                     //画面そこに到達したときの処理
                     //一番最後に取得した投稿をfetchPostsに送っている。あちらでは、startAfterを使いその投稿より後の投稿を取得している
                     fetchFollowPosts(
@@ -279,128 +252,16 @@ class _TimeLineState extends State<TimeLine> //上タブのために必要
                               DocumentSnapshot documentSnapshot =
                                   _followPostList[index];
 
-                              return _followPost(
-                                  context, documentSnapshot, index);
+                              return index == _followPostList.length - 1 &&
+                                      _loadCheckFollowPost == 0
+                                  ? Indicator()
+                                  : FollowPost(
+                                      document: documentSnapshot,
+                                    );
                             },
                           ));
                     })));
         break;
     }
-  }
-
-  //投稿表示する処理
-  Widget _newPost(BuildContext context, DocumentSnapshot document, index) {
-    return Column(
-      children: <Widget>[
-        InkWell(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    settings: const RouteSettings(name: "/postDetails"),
-
-                    //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
-                    builder: (BuildContext context) => PostDetails(document)),
-              );
-            },
-            child: Card(
-              //写真表示
-              child: ImageUrl(imageUrl: document['url']),
-            )),
-        index == _postList.length - 1
-            ? Center(
-                child: Container(
-                  margin: const EdgeInsets.only(top: 8.0, bottom: 50),
-                  width: 32.0,
-                  height: 32.0,
-                  child: const CircularProgressIndicator(),
-                ),
-              )
-            : Container()
-      ],
-    );
-  }
-
-  Widget _followPost(BuildContext context, DocumentSnapshot document, index) {
-    return Column(
-      children: <Widget>[
-        Card(
-          child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
-            UserName(document: document),
-
-            //写真表示
-            ImageUrl(imageUrl: document["url"]),
-
-            ListTile(
-              title: Text(document["comment"]),
-
-              //substringで表示する時刻を短縮している
-              subtitle: Text(document["time"].toString().substring(0, 10)),
-            ),
-
-            ButtonTheme.bar(
-              child: ButtonBar(
-                children: <Widget>[
-                  Row(
-                      children: document["tag"]
-                          .map<Widget>((item) => InkWell(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      settings: const RouteSettings(
-                                          name: "/postDetails"),
-
-                                      //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
-                                      builder: (BuildContext context) =>
-                                          SearchResultPage(item)),
-                                );
-                              },
-                              child: Container(
-                                  decoration: ShapeDecoration(
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.all(
-                                        Radius.circular(5.0),
-                                      ),
-                                    ),
-                                    color: Colors.black12,
-                                  ),
-                                  margin: EdgeInsets.only(right: 5, left: 5),
-                                  padding: EdgeInsets.all(5),
-                                  child: Text(item))))
-                          .toList()),
-                  FavoriteButton(document: document),
-                  FlatButton(
-                    child: const Icon(Icons.comment),
-                    onPressed: () {
-                      print("コメントボタンを押しました");
-
-                      //コメントページに画面遷移
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            settings: const RouteSettings(name: "/comment"),
-                            builder: (BuildContext context) =>
-                                MessagePage(document)),
-                      );
-                    },
-                  )
-                ],
-              ),
-            )
-          ]),
-        ),
-        index == _followPostList.length - 1 && _loadCheckFollowPost == 0
-            ? Center(
-                child: Container(
-                  margin: const EdgeInsets.only(top: 8.0, bottom: 60),
-                  width: 32.0,
-                  height: 32.0,
-                  child: const CircularProgressIndicator(),
-                ),
-              )
-            : Container()
-      ],
-    );
   }
 }

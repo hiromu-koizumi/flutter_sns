@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_cos/parts/Image_url.dart';
 import 'package:flutter_cos/favorites/favorite_page.dart';
 import 'package:flutter_cos/other_pages/login_page.dart';
-import 'package:flutter_cos/other_pages/message_page.dart';
+import 'package:flutter_cos/message/message_page.dart';
 import 'package:flutter_cos/posts/post_page.dart';
 import 'package:flutter_cos/searches/search_result_page.dart';
 import 'package:flutter_cos/parts/user_name_bar.dart';

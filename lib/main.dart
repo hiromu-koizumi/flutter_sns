@@ -2,11 +2,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cos/other_pages/login_page.dart';
-import 'package:flutter_cos/other_pages/notice_page.dart';
+import 'package:flutter_cos/notice/notice_page.dart';
 import 'package:flutter_cos/other_pages/splash_page.dart';
 import 'package:flutter_cos/searches/search_page.dart';
-import 'package:flutter_cos/other_pages/time_line_page.dart';
-import 'package:flutter_cos/user_pages/my_page.dart';
+import 'package:flutter_cos/timeline/time_line_page.dart';
+import 'package:flutter_cos/user_pages/my_page/my_page.dart';
 
 //firebaseに保存されるテキスト。const再代入不可な変数。const変数が指す先のメモリ領域も変更不可
 void main() async {

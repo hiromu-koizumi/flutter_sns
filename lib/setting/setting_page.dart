@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cos/setting/image_exist.dart';
+import 'package:flutter_cos/setting/new_image.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter_cos/other_pages/login_page.dart';
@@ -41,17 +43,15 @@ class _SettingPageState extends State<SettingPage> {
   @override
   Widget build(BuildContext context) {
     DocumentReference _userReference;
-    _userReference = Firestore.instance
-        .collection('users')
-        .document(firebaseUser.uid);
+    _userReference =
+        Firestore.instance.collection('users').document(firebaseUser.uid);
 
-
-        _data.userName = widget.userInformation['userName'];
-        _data.profile = widget.userInformation['profile'];
-        _data.url = widget.userInformation['photoUrl'];
-        _data.imagePath = widget.userInformation['imagePath'];
-        _data.searchKey = widget.userInformation['searchKey'];
-        _data.userId = widget.userInformation['userId'];
+    _data.userName = widget.userInformation['userName'];
+    _data.profile = widget.userInformation['profile'];
+    _data.url = widget.userInformation['photoUrl'];
+    _data.imagePath = widget.userInformation['imagePath'];
+    _data.searchKey = widget.userInformation['searchKey'];
+    _data.userId = widget.userInformation['userId'];
 
     return Scaffold(
         appBar: AppBar(title: Text('設定'), actions: <Widget>[
@@ -69,7 +69,15 @@ class _SettingPageState extends State<SettingPage> {
                 child: ListView(
                     padding: const EdgeInsets.all(20.0),
                     children: <Widget>[
-                      addimageButton(),
+                      Column(
+                        children: <Widget>[
+                          //addimageButton(),
+                          addImageButton(),
+                          _imageFile == null
+                              ? OldImage(url: _data.url)
+                              : NewImage(imageFile: _imageFile),
+                        ],
+                      ),
 
                       //ユーザー名テキストフィールド
                       TextFormField(
@@ -112,15 +120,11 @@ class _SettingPageState extends State<SettingPage> {
                           textColor: Colors.white,
                           color: Colors.blue,
                           onPressed: () {
-
 //                        //onSavedに処理を送っている。_formKeyがついているOnSavedに飛ぶ
                             _formKey.currentState.save();
                             uploadText(_userReference);
                             Navigator.pop(context);
-                          }
-
-
-                          )
+                          })
                     ]))));
   }
 
@@ -189,9 +193,8 @@ class _SettingPageState extends State<SettingPage> {
       "photoUrl": _data.url,
       "imagePath": _data.imagePath,
       "userId": _data.userId,
-      //"makeUserId": _data.makeUserID
       //ユーザー名の位置文字目を取り出している
-      "searchKey":  _data.userName.substring(0,1),
+      "searchKey": _data.userName.substring(0, 1),
     });
   }
 
@@ -215,11 +218,12 @@ class _SettingPageState extends State<SettingPage> {
 
       //他でも使える形式に変更している。
       // widget.setImage(image);
-      Navigator.pop(context);
+      // Navigator.pop(context);
     });
   }
 
-  Widget addimageButton() {
+  //これをクラスにすると保存の処理ができない。getImageがあるので
+  Widget addImageButton() {
     //枠線、アイコン、テキストの色
     final buttonColor = Theme.of(context).accentColor;
 
@@ -233,7 +237,7 @@ class _SettingPageState extends State<SettingPage> {
           ),
           onPressed: () {
             //写真をギャラリーから選ぶかカメラで今とるかの選択画面を表示
-            _openImagePicker(context);
+            _getImage(context, ImageSource.gallery);
           },
           child: Row(
             //中心に配置
@@ -254,79 +258,44 @@ class _SettingPageState extends State<SettingPage> {
             ],
           ),
         ),
-        //写真をfirebaseに保存する処理
-        imageExistingView(),
-        _imageFile == null ? Text('') : enableUpload(),
       ],
     );
   }
 
-
- Widget enableUpload() {
- return Material(
-   child: Image.file(
-     (_imageFile),
-     width: 190,
-     height: 190,
-     fit: BoxFit.cover,
-   ),borderRadius: BorderRadius.all(Radius.circular(100.0)),
-   clipBehavior: Clip.hardEdge,
- );
-  }
-
-  //写真を追加するボタンを押されたとき呼ばれる処理。使う写真を
-  void _openImagePicker(BuildContext context) {
-    showModalBottomSheet(
-        context: context,
-        builder: (BuildContext context) {
-          return Container(
-            height: 200.0,
-            padding: EdgeInsets.all(10.0),
-            child: Column(children: [
-              Text(
-                'Pick an Image',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              SizedBox(
-                height: 10.0,
-              ),
-              FlatButton(
-                textColor: Theme.of(context).primaryColor,
-                child: Text('Use Camera'),
-                onPressed: () {
-                  //カメラが起動する
-                  _getImage(context, ImageSource.camera);
-                },
-              ),
-              FlatButton(
-                textColor: Theme.of(context).primaryColor,
-                child: Text('Use Gallery'),
-                onPressed: () {
-                  //ギャラリーが表示される
-                  _getImage(context, ImageSource.gallery);
-                },
-              )
-            ]),
-          );
-        });
-  }
-
-  //編集時以前投稿した写真表示
-  Widget imageExistingView() {
-    if (_data.url != null && _imageFile == null) {
-
-      return Material(
-        child: Image.network(
-          (_data.url),
-          width: 190,
-          height: 190,
-          fit: BoxFit.cover,
-        ),borderRadius: BorderRadius.all(Radius.circular(100.0)),
-        clipBehavior: Clip.hardEdge,
-      );
-    } else {
-      //写真を変更したときにもともと投稿してあった写真の表示をけす。
-      return Container();
-    }
-  }
+  //後々使うかもしれないから消さないで！写真を追加するボタンを押されたとき呼ばれる処理。使う写真を
+//  Widget _openImagePicker(BuildContext context) {
+//    showModalBottomSheet(
+//        context: context,
+//        builder: (BuildContext context) {
+//          return Container(
+//            height: 200.0,
+//            padding: EdgeInsets.all(10.0),
+//            child: Column(children: [
+//              Text(
+//                'Pick an Image',
+//                style: TextStyle(fontWeight: FontWeight.bold),
+//              ),
+//              SizedBox(
+//                height: 10.0,
+//              ),
+//              FlatButton(
+//                textColor: Theme.of(context).primaryColor,
+//                child: Text('Use Camera'),
+//                onPressed: () {
+//                  //カメラが起動する
+//                  _getImage(context, ImageSource.camera);
+//                },
+//              ),
+//              FlatButton(
+//                textColor: Theme.of(context).primaryColor,
+//                child: Text('Use Gallery'),
+//                onPressed: () {
+//                  //ギャラリーが表示される
+//                  _getImage(context, ImageSource.gallery);
+//                },
+//              )
+//            ]),
+//          );
+//        });
+//  }
 }

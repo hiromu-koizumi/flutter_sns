@@ -5,7 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cos/main.dart';
-import 'package:flutter_cos/user_pages/my_page.dart';
+import 'package:flutter_cos/user_pages/my_page/my_page.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 //いろんなページで使うから外出しといたほうが便利

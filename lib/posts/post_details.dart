@@ -4,7 +4,7 @@ import 'package:flutter_cos/parts/Image_url.dart';
 import 'package:flutter_cos/favorites/favorite.dart';
 import 'package:flutter_cos/other_pages/login_page.dart';
 import 'package:flutter_cos/main.dart';
-import 'package:flutter_cos/other_pages/message_page.dart';
+import 'package:flutter_cos/message/message_page.dart';
 import 'package:flutter_cos/searches/search_result_page.dart';
 import 'package:flutter_cos/parts/user_name_bar.dart';
 

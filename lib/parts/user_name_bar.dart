@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cos/user_pages/user_page.dart';
+import 'package:flutter_cos/user_pages/user_page/user_page.dart';
 
 class UserName extends StatelessWidget {
   const UserName({

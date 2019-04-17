@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cos/favorites/build_favorite_button.dart';
+import 'package:flutter_cos/favorites/cosco_favorite_button.dart';
 import 'package:flutter_cos/other_pages/login_page.dart';
 import 'dart:async';
 
@@ -103,7 +103,7 @@ class FavoriteButton extends StatelessWidget {
         _favoritedUserRef.delete();
         _beFavoritedUserRef.delete();
       } else {
-        print('saveした${_savedDocumentID}');
+        print('saveした$_savedDocumentID');
         _favoritedUserRef.setData({
           "documentId": document.documentID,
           "time": DateTime.now(),

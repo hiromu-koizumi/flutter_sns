@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_cos/parts/Image_url.dart';
 import 'package:flutter_cos/other_pages/login_page.dart';
 import 'package:flutter_cos/main.dart';
+import 'package:flutter_cos/posts/new_image.dart';
+import 'package:flutter_cos/posts/old_image.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
@@ -43,6 +45,7 @@ class _FormData {
 class _PostPageState extends State<PostPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final _FormData _data = _FormData();
+  final String uuid = Uuid().v1();
 
 //textfieldの中に書き込まれた文字を取得するために必要
   TextEditingController myController = TextEditingController();
@@ -69,17 +72,15 @@ class _PostPageState extends State<PostPage> {
 
     //タイムラインから渡された引数があるか。ありの場合:編集の処理。なしの場合:新規投稿の処理。
     if (widget.document != null) {
-      if (_data.comment == null && _data.url == null) {
-        _data.comment = widget.document['comment'];
-        _data.url = widget.document['url'];
-        _data.imagePath = widget.document['imagePath'];
-        _data.documentId = widget.document['documentId'];
+      _data.comment = widget.document['comment'];
+      _data.url = widget.document['url'];
+      _data.imagePath = widget.document['imagePath'];
+      _data.documentId = widget.document['documentId'];
 
-        //widget.document['tag']をそのまま代入すると[[値]]というふうにカッコが二重になってしまうので取り出している
-        widget.document['tag'].forEach((n) {
-          _data.tagList.add(n);
-        });
-      }
+      //widget.document['tag']をそのまま代入すると[[値]]というふうにカッコが二重になってしまうので取り出している
+      widget.document['tag'].forEach((n) {
+        _data.tagList.add(n);
+      });
 
       print(tag);
       //編集ボタン押したときのデータベースの参照先
@@ -92,6 +93,9 @@ class _PostPageState extends State<PostPage> {
           .document(_data.documentId);
 
       deleteFlg = true;
+    } else {
+      //新規投稿のときのドキュメントIDを作成している
+      _data.documentId = uuid;
     }
     if (firebaseUser.isAnonymous) {
       return Scaffold(
@@ -161,7 +165,12 @@ class _PostPageState extends State<PostPage> {
                     top: 20.0, left: 20.0, right: 20.0, bottom: 50),
                 children: <Widget>[
                   //image.dartファイルのクラス
-                  addimageButton(),
+                  addImageButton(),
+                  _imageFile == null && _data.url == null
+                      ? Container()
+                      : _imageFile == null && _data.url != null
+                          ? OldImage(url: _data.url)
+                          : NewImage(imageFile: _imageFile),
                   //ImageInput(),
                   TextFormField(
                     decoration: const InputDecoration(
@@ -343,7 +352,7 @@ class _PostPageState extends State<PostPage> {
 //        });
 //  }
 
-  Widget addimageButton() {
+  Widget addImageButton() {
     //枠線、アイコン、テキストの色
     final buttonColor = Theme.of(context).accentColor;
 
@@ -373,45 +382,16 @@ class _PostPageState extends State<PostPage> {
               SizedBox(
                 width: 5.0,
               ),
-//              Text(
-//                'Add Image',
-//                style: TextStyle(color: buttonColor),
-//              )
             ],
           ),
         ),
-        //編集時以前投稿した写真を表示
-        imageExistingView(),
-        //写真をfirebaseに保存する処理
-        _imageFile == null ? Text('') : enableUpload(),
       ],
     );
-  }
-
-  //画像表示する処理。
-  Widget enableUpload() {
-    return Container(
-        child: Column(children: <Widget>[
-      //写真を表示する場所
-      Image.file(_imageFile, height: 300.0, width: 300.0),
-    ]));
-  }
-
-  //編集時以前投稿した写真表示
-  Widget imageExistingView() {
-    if (_data.url != null && _imageFile == null) {
-      return Container(
-          child: Column(children: <Widget>[ImageUrl(imageUrl: _data.url)]));
-    } else {
-      //写真を変更したときにもともと投稿してあった写真の表示をけす。
-      return Container();
-    }
   }
 
   Future<String> uploadImageText(
       _allPostsReference, _userPostsReference) async {
     //保存する写真の名前を変更するためにUUIDを生成している
-    final String uuid = Uuid().v1();
 
     //写真に変更を加えたときの処理
     if (photoEditAdd == true) {
@@ -436,7 +416,7 @@ class _PostPageState extends State<PostPage> {
       //写真のurlをダウンロードしている
       var downUrl = await (await task.onComplete).ref.getDownloadURL();
 
-      _data.documentId = uuid;
+      // _data.documentId = uuid;
 
       //urlに写真のURLを格納
       _data.url = downUrl.toString();

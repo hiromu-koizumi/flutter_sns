@@ -1,7 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cos/message/message.dart';
+import 'package:flutter_cos/message/message_name.dart';
+import 'package:flutter_cos/message/own_message.dart';
 import 'package:flutter_cos/other_pages/login_page.dart';
-import 'package:flutter_cos/user_pages/user_page.dart';
+import 'package:flutter_cos/user_pages/user_page/user_page.dart';
 import 'package:uuid/uuid.dart';
 
 class MessagePage extends StatefulWidget {
@@ -71,8 +74,8 @@ class _MessagePageState extends State<MessagePage> {
 
                       //メッセージを右左どちらに表示するかを決めている
                       return isOwnMessage
-                          ? _ownMessage(document)
-                          : _message(document);
+                          ? OwnMessage(document: document)
+                          : Message(document: document);
                     },
                     itemCount: snapshot.data.documents.length,
                   );
@@ -83,7 +86,7 @@ class _MessagePageState extends State<MessagePage> {
           Divider(height: 1.0),
 
           Container(
-            margin: EdgeInsets.only(bottom: 50.0, right: 10.0, left: 10.0),
+            margin: EdgeInsets.only(bottom: 90.0, right: 10.0, left: 10.0),
             child: Row(
               children: <Widget>[
                 Flexible(
@@ -113,37 +116,6 @@ class _MessagePageState extends State<MessagePage> {
     );
   }
 
-  Widget _ownMessage(DocumentSnapshot document) {
-    return Row(mainAxisAlignment: MainAxisAlignment.end, children: <Widget>[
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: <Widget>[
-          SizedBox(
-            height: 10.0,
-          ),
-          Text(document["message"]),
-        ],
-      )
-    ]);
-  }
-
-  Widget _message(DocumentSnapshot document) {
-    return Row(
-      children: <Widget>[
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: <Widget>[
-            SizedBox(
-              height: 20.0,
-            ),
-            _messageName(document),
-          ],
-        ),
-        Text(document["message"])
-      ],
-    );
-  }
-
   _handleSubmit(String message) {
     if (message != "") {
       _controller.text = "";
@@ -168,9 +140,9 @@ class _MessagePageState extends State<MessagePage> {
 
       if (firebaseUser.uid != widget.document['userId']) {
         DocumentReference _noticeMessageRef;
-          //noticeに既読したことを保存するためにidが必要
-      final String uuid = Uuid().v1();
-      final _id = uuid;
+        //noticeに既読したことを保存するためにidが必要
+        final String uuid = Uuid().v1();
+        final _id = uuid;
         _noticeMessageRef = Firestore.instance
             .collection('users')
             .document(widget.document['userId'])
@@ -198,56 +170,5 @@ class _MessagePageState extends State<MessagePage> {
         .snapshots()
         .listen((data) =>
             data.documents.forEach((doc) => _userName = doc["userName"]));
-  }
-
-  Widget _messageName(DocumentSnapshot document) {
-    return StreamBuilder<QuerySnapshot>(
-        stream: Firestore.instance
-            .collection('users')
-            .where('userId', isEqualTo: document['userId'])
-            .snapshots(),
-        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          if (!snapshot.hasData) return const Text('Loading...');
-          // userInformation = snapshot.data.documents[0];
-
-          //ユーザ登録していない人としている人で処理を分けている。
-          if (snapshot.data.documents.length == 0) {
-            return Container(
-              //margin: EdgeInsets.only(),
-              child: Text('未登録さん'),
-            );
-          } else {
-            return InkWell(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        settings: const RouteSettings(name: "/userPage"),
-                        builder: (BuildContext context) =>
-                            //表示されている名前のユーザーIDをUserPageに渡している
-                            UserPage(document['userId'])),
-                  );
-                },
-                child: Column(
-                  children: <Widget>[
-                    Material(
-                      child: Image.network(
-                        (snapshot.data.documents[0]['photoUrl']),
-                        width: 40,
-                        height: 40,
-                        fit: BoxFit.cover,
-                      ),
-                      borderRadius: BorderRadius.all(Radius.circular(20.0)),
-                      clipBehavior: Clip.hardEdge,
-                    ),
-                    SizedBox(
-                      height: 5.0,
-                    ),
-                    Text(snapshot.data.documents[0]['userName']),
-                  ],
-                ));
-            // Text(snapshot.data.documents[0]['userName']);
-          }
-        });
   }
 }
