@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cos/other_pages/login_page.dart';
+import 'package:flutter_cos/user_pages/user_page/cosco_follow_button.dart';
 import 'package:uuid/uuid.dart';
 
 class FollowButton extends StatelessWidget {
@@ -23,28 +24,16 @@ class FollowButton extends StatelessWidget {
             .snapshots(),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (!snapshot.hasData) return const Text('Loading...');
-
+          final isFollow = snapshot.data.documents.isNotEmpty;
           //ユーザー登録していない人はフォローボタン表示しないようにしている
-          if (firebaseUser.isAnonymous) {
-            return Text("");
-          } else if (snapshot.data.documents.length == 0) {
-            //フォローしていないときの処理
-            return RaisedButton(
-              child: Text('フォローする'),
-              onPressed: () {
-                print('${snapshot.data.documents.length}');
-                followCheck();
-              },
-            );
-          } else {
-            //フォローしているときの処理
-            return RaisedButton(
-              child: Text('フォロー中'),
-              onPressed: () {
-                followCheck();
-              },
-            );
-          }
+          if (firebaseUser.isAnonymous) return Text("");
+
+          return CoscoFollowButton(
+            isFollow: isFollow,
+            onPressed: () {
+              followCheck();
+            },
+          );
         },
       ),
     );

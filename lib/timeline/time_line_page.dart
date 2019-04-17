@@ -224,43 +224,46 @@ class _TimeLineState extends State<TimeLine> //上タブのために必要
             ));
       case 'フォロー':
         return RefreshIndicator(
-            //下に引っ張ると更新する処理
-            onRefresh: _updateFollowPost,
-            child: NotificationListener<ScrollNotification>(
-                onNotification: (ScrollNotification value) {
-                  if (value.metrics.extentAfter == 0.0 &&
-                      _loadCheckFollowPost == 0) {
-                    //画面そこに到達したときの処理
-                    //一番最後に取得した投稿をfetchPostsに送っている。あちらでは、startAfterを使いその投稿より後の投稿を取得している
-                    fetchFollowPosts(
-                        _followPostList[_followPostList.length - 1]);
-                  }
-                },
-                child: StreamBuilder(
-                    stream: _followPostsController.stream,
-                    builder: (BuildContext context, snapshot) {
-                      //if (!snapshot.hasData) return const Text('Loading...');
+          //下に引っ張ると更新する処理
+          onRefresh: _updateFollowPost,
+          child: NotificationListener<ScrollNotification>(
+            onNotification: (ScrollNotification value) {
+              if (value.metrics.extentAfter == 0.0 &&
+                  _loadCheckFollowPost == 0) {
+                //画面そこに到達したときの処理
+                //一番最後に取得した投稿をfetchPostsに送っている。あちらでは、startAfterを使いその投稿より後の投稿を取得している
+                fetchFollowPosts(_followPostList[_followPostList.length - 1]);
+              }
+            },
+            child: StreamBuilder(
+              stream: _followPostsController.stream,
+              builder: (BuildContext context, snapshot) {
+                //if (!snapshot.hasData) return const Text('Loading...');
 
-                      return Padding(
-                          padding: EdgeInsets.only(bottom: 50),
-                          child: ListView.builder(
-                            itemCount: _followPostList.length,
-                            padding: const EdgeInsets.only(top: 10.0),
+                return Padding(
+                  padding: EdgeInsets.only(bottom: 50),
+                  child: ListView.builder(
+                    itemCount: _followPostList.length,
+                    padding: const EdgeInsets.only(top: 10.0),
 
-                            //投稿を表示する処理にデータを送っている
-                            itemBuilder: (context, index) {
-                              DocumentSnapshot documentSnapshot =
-                                  _followPostList[index];
+                    //投稿を表示する処理にデータを送っている
+                    itemBuilder: (context, index) {
+                      DocumentSnapshot documentSnapshot =
+                          _followPostList[index];
 
-                              return index == _followPostList.length - 1 &&
-                                      _loadCheckFollowPost == 0
-                                  ? Indicator()
-                                  : FollowPost(
-                                      document: documentSnapshot,
-                                    );
-                            },
-                          ));
-                    })));
+                      return index == _followPostList.length - 1 &&
+                              _loadCheckFollowPost == 0
+                          ? Indicator()
+                          : FollowPost(
+                              document: documentSnapshot,
+                            );
+                    },
+                  ),
+                );
+              },
+            ),
+          ),
+        );
         break;
     }
   }

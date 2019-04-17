@@ -26,7 +26,6 @@ class _MyFollowPageState extends State<MyFollowPage>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        //title: const Text(""),
         title: TabBar(
           controller: _tabController,
           tabs: tabs,
