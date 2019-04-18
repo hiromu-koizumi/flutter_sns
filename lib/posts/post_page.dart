@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_cos/parts/Image_url.dart';
 import 'package:flutter_cos/other_pages/login_page.dart';
 import 'package:flutter_cos/main.dart';
+import 'package:flutter_cos/posts/add_image_button.dart';
 import 'package:flutter_cos/posts/new_image.dart';
 import 'package:flutter_cos/posts/old_image.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -165,7 +166,11 @@ class _PostPageState extends State<PostPage> {
                     top: 20.0, left: 20.0, right: 20.0, bottom: 50),
                 children: <Widget>[
                   //image.dartファイルのクラス
-                  addImageButton(),
+                  AddImageButton(
+                    onPressed: () {
+                      _getImage(context, ImageSource.gallery);
+                    },
+                  ),
                   _imageFile == null && _data.url == null
                       ? Container()
                       : _imageFile == null && _data.url != null
@@ -351,43 +356,6 @@ class _PostPageState extends State<PostPage> {
 //          );
 //        });
 //  }
-
-  Widget addImageButton() {
-    //枠線、アイコン、テキストの色
-    final buttonColor = Theme.of(context).accentColor;
-
-    return Column(
-      children: <Widget>[
-        OutlineButton(
-          //枠線
-          borderSide: BorderSide(
-            color: buttonColor,
-            width: 2.0,
-          ),
-          onPressed: () {
-            //写真をギャラリーから選ぶかカメラで今とるかの選択画面を表示
-            //_openImagePicker(context);
-
-            _getImage(context, ImageSource.gallery);
-          },
-          child: Row(
-            //中心に配置
-            mainAxisAlignment: MainAxisAlignment.center,
-
-            children: <Widget>[
-              Icon(
-                Icons.camera_alt,
-                color: buttonColor,
-              ),
-              SizedBox(
-                width: 5.0,
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
 
   Future<String> uploadImageText(
       _allPostsReference, _userPostsReference) async {
