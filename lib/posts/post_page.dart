@@ -10,6 +10,7 @@ import 'package:flutter_cos/main.dart';
 import 'package:flutter_cos/posts/add_image_button.dart';
 import 'package:flutter_cos/posts/new_image.dart';
 import 'package:flutter_cos/posts/old_image.dart';
+import 'package:flutter_cos/user_pages/my_page/my_page.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
@@ -47,29 +48,18 @@ class _PostPageState extends State<PostPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final _FormData _data = _FormData();
   final String uuid = Uuid().v1();
-
+  //一つにまとめられると思う。新着に投稿を乗せるため保存先を2つにしてある
+  //新規投稿時のデータベース保存先作成
+  DocumentReference _allPostsReference;
+  DocumentReference _userPostsReference;
 //textfieldの中に書き込まれた文字を取得するために必要
   TextEditingController myController = TextEditingController();
+  bool deleteFlg = false;
 
   @override
-  void dispose() {
-    // Clean up the controller when the Widget is disposed
-    myController.dispose();
-    super.dispose();
-  }
-
-  //tagListに代入された値を画面に表示するために必要
-  StreamController<List> tag = StreamController<List>.broadcast();
-
-  @override
-  Widget build(BuildContext context) {
-    //一つにまとめられると思う。新着に投稿を乗せるため保存先を2つにしてある
-    //新規投稿時のデータベース保存先作成
-    DocumentReference _allPostsReference;
-    DocumentReference _userPostsReference;
-
-    //削除機能のため
-    bool deleteFlg = false;
+  void initState() {
+    // TODO: implement initState
+    super.initState();
 
     //タイムラインから渡された引数があるか。ありの場合:編集の処理。なしの場合:新規投稿の処理。
     if (widget.document != null) {
@@ -98,6 +88,20 @@ class _PostPageState extends State<PostPage> {
       //新規投稿のときのドキュメントIDを作成している
       _data.documentId = uuid;
     }
+  }
+
+  @override
+  void dispose() {
+    // Clean up the controller when the Widget is disposed
+    myController.dispose();
+    super.dispose();
+  }
+
+  //tagListに代入された値を画面に表示するために必要
+  StreamController<List> tag = StreamController<List>.broadcast();
+
+  @override
+  Widget build(BuildContext context) {
     if (firebaseUser.isAnonymous) {
       return Scaffold(
           appBar: AppBar(title: const Text('')),
@@ -122,43 +126,43 @@ class _PostPageState extends State<PostPage> {
       });
 
       return Scaffold(
-          appBar: AppBar(
-            title: const Text('投稿'),
-            actions: <Widget>[
-              //削除ボタン処理
-              IconButton(
-                icon: Icon(Icons.delete),
-                onPressed: !deleteFlg
-                    ? null
-                    : () {
-                        print('削除ボタンを押しました');
+        appBar: AppBar(
+          title: const Text('投稿'),
+          actions: <Widget>[
+            //削除ボタン処理
+            IconButton(
+              icon: Icon(Icons.delete),
+              onPressed: !deleteFlg
+                  ? null
+                  : () {
+                      print('削除ボタンを押しました');
 
-                        //firebaseStorageからデータを削除
-                        final StorageReference firebaseStorageRef =
-                            FirebaseStorage.instance
-                                .ref()
-                                .child('image')
-                                .child('${_data.imagePath}');
-                        firebaseStorageRef.delete();
+                      //firebaseStorageからデータを削除
+                      final StorageReference firebaseStorageRef =
+                          FirebaseStorage.instance
+                              .ref()
+                              .child('image')
+                              .child('${_data.imagePath}');
+                      firebaseStorageRef.delete();
 
-                        myFollowersDelete();
+                      myFollowersDelete();
 
-                        //firebaseDatabaseからデータを削除
-                        _allPostsReference.delete();
-                        _userPostsReference.delete();
-                        Navigator.pop(context);
-                        Navigator.pop(context);
-                      },
-              )
-            ],
-          ),
-          body: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () {
-              FocusScope.of(context).requestFocus(new FocusNode());
-            },
-            child: SafeArea(
-                child: Form(
+                      //firebaseDatabaseからデータを削除
+                      _allPostsReference.delete();
+                      _userPostsReference.delete();
+                      Navigator.pop(context);
+                      Navigator.pop(context);
+                    },
+            )
+          ],
+        ),
+        body: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            FocusScope.of(context).requestFocus(new FocusNode());
+          },
+          child: SafeArea(
+            child: Form(
               //グローバルキー。紐づけするためにある。
               key: _formKey,
               child: ListView(
@@ -204,29 +208,35 @@ class _PostPageState extends State<PostPage> {
                     height: 20,
                   ),
                   Container(
-                      child: StreamBuilder(
-                          stream: tag.stream,
-                          builder: (context, snapshot) {
-                            if (!snapshot.hasData) return const Text('');
-                            // print(snapshot.data.length);
-                            return Row(
-                                children: _data.tagList
-                                    .map((item) => Container(
-                                        decoration: ShapeDecoration(
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.all(
-                                              Radius.circular(5.0),
-                                            ),
+                    child: StreamBuilder(
+                      stream: tag.stream,
+                      builder: (context, snapshot) {
+                        if (!snapshot.hasData) return const Text('');
+                        // print(snapshot.data.length);
+                        return Row(
+                          children: _data.tagList
+                              .map(
+                                (item) => Container(
+                                      decoration: ShapeDecoration(
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.all(
+                                            Radius.circular(5.0),
                                           ),
-                                          color: Colors.black12,
                                         ),
-                                        margin:
-                                            EdgeInsets.only(right: 5, left: 5),
-                                        padding: EdgeInsets.all(5),
-                                        child: Text(item)))
-                                    .toList());
-                            //Text(snapshot.data.toString());
-                          })),
+                                        color: Colors.black12,
+                                      ),
+                                      margin:
+                                          EdgeInsets.only(right: 5, left: 5),
+                                      padding: EdgeInsets.all(5),
+                                      child: Text(item),
+                                    ),
+                              )
+                              .toList(),
+                        );
+                        //Text(snapshot.data.toString());
+                      },
+                    ),
+                  ),
 
                   Column(children: <Widget>[
                     TextField(
@@ -265,34 +275,44 @@ class _PostPageState extends State<PostPage> {
 
                   //投稿ボタン
                   RaisedButton(
-                      elevation: 7.0,
-                      child: Text('投稿'),
-                      textColor: Colors.white,
-                      color: Colors.blue,
-                      onPressed: () {
-                        if (_formKey.currentState.validate()) {
-                          if (_data.url == null && _imageFile == null) {
-                            return Fluttertoast.showToast(msg: "写真を選択してね！");
-                          }
-                          //onSavedに処理を送っている。_formKeyがついているOnSavedに飛ぶ
-                          _formKey.currentState.save();
-
-                          //firebaseに写真とテキストを保存する処理._mainReferenceは投稿情報を渡している。これを渡さず関数側で投稿情報を作り編集投稿すると編集できず新規投稿をしてしまう。
-                          uploadImageText(
-                              _allPostsReference, _userPostsReference);
-
-                          Navigator.pop(context);
-
-                          //編集時の処理。編集を更新させるために二回戻らせている
-                          if (widget.document != null) {
-                            Navigator.pop(context);
-                          }
+                    elevation: 7.0,
+                    child: Text('投稿'),
+                    textColor: Colors.white,
+                    color: Colors.blue,
+                    onPressed: () {
+                      if (_formKey.currentState.validate()) {
+                        if (_data.url == null && _imageFile == null) {
+                          return Fluttertoast.showToast(msg: "写真を選択してね！");
                         }
-                      })
+                        //onSavedに処理を送っている。_formKeyがついているOnSavedに飛ぶ
+                        _formKey.currentState.save();
+
+                        //firebaseに写真とテキストを保存する処理._mainReferenceは投稿情報を渡している。これを渡さず関数側で投稿情報を作り編集投稿すると編集できず新規投稿をしてしまう。
+                        uploadImageText(
+                            _allPostsReference, _userPostsReference);
+
+                        Navigator.pop(context);
+
+                        //編集時の処理。編集を更新させるために二回戻らせている
+                        if (widget.document != null) {
+                          // Navigator.pop(context);
+                          //投稿を編集した時にそれを反映させるためにpushAndRemoveUntilをしている
+                          Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => MyPages(),
+                              ),
+                              (_) => false);
+                        }
+                      }
+                    },
+                  )
                 ],
               ),
-            )),
-          ));
+            ),
+          ),
+        ),
+      );
     }
   }
 
@@ -305,17 +325,21 @@ class _PostPageState extends State<PostPage> {
   //写真を追加するボタンを押したときの処理
   void _getImage(BuildContext context, ImageSource source) {
     //写真の横幅を決めている
-    ImagePicker.pickImage(source: source, maxWidth: 400.0).then((File image) {
-      setState(() {
-        //写真を代入
-        _imageFile = image;
-        photoEditAdd = true;
-      });
+    ImagePicker.pickImage(source: source, maxWidth: 400.0).then(
+      (File image) {
+        setState(
+          () {
+            //写真を代入
+            _imageFile = image;
+            photoEditAdd = true;
+          },
+        );
 
-      //他でも使える形式に変更している。後々必要になるかも。
-      // widget.setImage(image);
-      // Navigator.pop(context);
-    });
+        //他でも使える形式に変更している。後々必要になるかも。
+        // widget.setImage(image);
+        // Navigator.pop(context);
+      },
+    );
   }
 
   //後々使うかもしれないから消さないでー
@@ -433,37 +457,48 @@ class _PostPageState extends State<PostPage> {
         .document(firebaseUser.uid)
         .collection("followers")
         .snapshots()
-        .listen((data) => data.documents.forEach((doc) =>
+        .listen(
+          (data) => data.documents.forEach(
+                (doc) =>
 
-            //空の時nullに上書きされない
-            _myFollowersId.add(doc["userId"])));
+                    //空の時nullに上書きされない
+                    _myFollowersId.add(
+                      doc["userId"],
+                    ),
+              ),
+        );
 
     //一秒遅く処理を開始しないと_myFollowersIdに値が代入されない。もっと良いコードあるはず
-    Future.delayed(new Duration(seconds: 1), () {
-      print("フォロワーリスト$_myFollowersId");
-      print(_myFollowersId.length);
-      int id = 0;
-      DocumentReference _followerReference;
+    Future.delayed(
+      new Duration(seconds: 1),
+      () {
+        print("フォロワーリスト$_myFollowersId");
+        print(_myFollowersId.length);
+        int id = 0;
+        DocumentReference _followerReference;
 
-      //フォロワーの数と同じだけ処理をくりかえしている。
-      while (_myFollowersId.length - 1 >= id) {
-        _followerReference = Firestore.instance
-            .collection('users')
-            .document(_myFollowersId[id])
-            .collection("followingPosts")
-            .document(_data.documentId);
+        //フォロワーの数と同じだけ処理をくりかえしている。
+        while (_myFollowersId.length - 1 >= id) {
+          _followerReference = Firestore.instance
+              .collection('users')
+              .document(_myFollowersId[id])
+              .collection("followingPosts")
+              .document(_data.documentId);
 
-        _followerReference.setData({
-          "url": _data.url,
-          "comment": _data.comment,
-          "time": _data.date,
-          "documentId": _data.documentId,
-          "userId": firebaseUser.uid,
-          "tag": _data.tagList
-        });
-        id = id + 1;
-      }
-    });
+          _followerReference.setData(
+            {
+              "url": _data.url,
+              "comment": _data.comment,
+              "time": _data.date,
+              "documentId": _data.documentId,
+              "userId": firebaseUser.uid,
+              "tag": _data.tagList
+            },
+          );
+          id = id + 1;
+        }
+      },
+    );
   }
 
   myFollowersDelete() {
@@ -480,23 +515,26 @@ class _PostPageState extends State<PostPage> {
             _myFollowersId.add(doc["userId"])));
 
     //一秒遅く処理を開始しないと_myFollowersIdに値が代入されない。もっと良いコードあるはず
-    Future.delayed(new Duration(seconds: 1), () {
-      print("フォロワーリスト$_myFollowersId");
-      print(_myFollowersId.length);
-      int id = 0;
-      DocumentReference _followerReference;
+    Future.delayed(
+      new Duration(seconds: 1),
+      () {
+        print("フォロワーリスト$_myFollowersId");
+        print(_myFollowersId.length);
+        int id = 0;
+        DocumentReference _followerReference;
 
-      //フォロワーの数と同じだけ処理をくりかえしている。
-      while (_myFollowersId.length - 1 >= id) {
-        _followerReference = Firestore.instance
-            .collection('users')
-            .document(_myFollowersId[id])
-            .collection("followingPosts")
-            .document(_data.documentId);
+        //フォロワーの数と同じだけ処理をくりかえしている。
+        while (_myFollowersId.length - 1 >= id) {
+          _followerReference = Firestore.instance
+              .collection('users')
+              .document(_myFollowersId[id])
+              .collection("followingPosts")
+              .document(_data.documentId);
 
-        _followerReference.delete();
-        id = id + 1;
-      }
-    });
+          _followerReference.delete();
+          id = id + 1;
+        }
+      },
+    );
   }
 }

@@ -116,12 +116,14 @@ class _LoginPageState extends State<LoginPage> {
       firebaseUser = await _auth.currentUser();
 
       Navigator.push(
-          context,
-          MaterialPageRoute(
-              settings: const RouteSettings(name: "/MyPage"),
+        context,
+        MaterialPageRoute(
+          settings: const RouteSettings(name: "/MyPage"),
 
-              //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
-              builder: (BuildContext context) => MyPages()));
+          //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
+          builder: (BuildContext context) => MyPages(),
+        ),
+      );
 
       //Navigator.pushNamedAndRemoveUntil(context, "/", (_) => false);
     } catch (e) {
@@ -151,12 +153,14 @@ class _LoginPageState extends State<LoginPage> {
       });
 
       Navigator.push(
-          context,
-          MaterialPageRoute(
-              settings: const RouteSettings(name: "/MyPage"),
+        context,
+        MaterialPageRoute(
+          settings: const RouteSettings(name: "/MyPage"),
 
-              //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
-              builder: (BuildContext context) => MyPages()));
+          //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
+          builder: (BuildContext context) => MyPages(),
+        ),
+      );
       //Navigator.pushNamedAndRemoveUntil(context, "/MyPage", (_) => false);
     } catch (e) {
       Fluttertoast.showToast(

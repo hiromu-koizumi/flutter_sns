@@ -57,44 +57,41 @@ class _MyPageState extends State<MyPages> {
 
   @override
   Widget build(BuildContext context) {
-    if (firebaseUser.isAnonymous) {
-      return LoginPage();
-    } else {
-      return Scaffold(
-          appBar: AppBar(title: Text('マイページ'), actions: <Widget>[
-            IconButton(
-              icon: Icon(Icons.add_a_photo),
-              onPressed: () {
-                print("mypage");
+    return Scaffold(
+      appBar: AppBar(title: Text('マイページ'), actions: <Widget>[
+        IconButton(
+          icon: Icon(Icons.add_a_photo),
+          onPressed: () {
+            print("mypage");
 
-                //画面遷移
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      settings: const RouteSettings(name: "/new"),
-                      builder: (BuildContext context) =>
-                          PostPage(null) //null 編集機能付けるのに必要っぽい
-                      ),
-                );
-              },
-            ),
-            IconButton(
-              icon: Icon(Icons.settings),
-              onPressed: () {
-                //画面遷移
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      settings: const RouteSettings(name: "/setting"),
-                      builder: (BuildContext context) =>
-                          SettingPage(userInformation) //
-                      ),
-                );
-              },
-            ),
-          ]),
-          body: postStream());
-    }
+            //画面遷移
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  settings: const RouteSettings(name: "/new"),
+                  builder: (BuildContext context) =>
+                      PostPage(null) //null 編集機能付けるのに必要っぽい
+                  ),
+            );
+          },
+        ),
+        IconButton(
+          icon: Icon(Icons.settings),
+          onPressed: () {
+            //画面遷移
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  settings: const RouteSettings(name: "/setting"),
+                  builder: (BuildContext context) =>
+                      SettingPage(userInformation) //
+                  ),
+            );
+          },
+        ),
+      ]),
+      body: postStream(),
+    );
   }
 
   fetchMyPosts(document) async {

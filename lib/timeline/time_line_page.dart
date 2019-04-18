@@ -171,8 +171,13 @@ class _TimeLineState extends State<TimeLine> //上タブのために必要
         .startAfter([_followPostList[0]['time']])
         .limit(10)
         .snapshots()
-        .listen((data) =>
-            data.documents.forEach((doc) => _followPostList.insert(0, doc)));
+        .listen(
+          (data) => data.documents.isNotEmpty &&
+                  data.documents[0]["documentId"] !=
+                      _followPostList[0]["documentId"]
+              ? data.documents.forEach((doc) => _followPostList.insert(0, doc))
+              : print('新規投稿無し'),
+        );
     Future.delayed(new Duration(seconds: 4), () {
       print('読み込み中');
       _followPostsController.sink.add(_followPostList);
