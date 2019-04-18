@@ -1,0 +1,59 @@
+service cloud.firestore {
+match /databases/{database}/documents {
+function isAuthenticated(){
+  return request.auth != null;
+}
+function isUserAuthenticated(userId){
+  return request.auth.uid == userId;
+}
+
+match /posts/{postId}{
+allow read, create, update, delete: if isAuthenticated();
+}
+
+
+match /users/{userId}{
+allow read: if isAuthenticated();
+allow create, update, delete: if isUserAuthenticated(userId);
+
+//自分が投稿した時に保存される。ユーザーページで他のユーザーにも表示する。
+match /posts/{documentId}{
+allow read: if isAuthenticated();
+allow create, update, delete: if isUserAuthenticated(userId);
+
+//いいねされた時に保存される。マイページで自分の投稿詳細でいいね数といいねした人を表示する。
+match /beFavorited/{documentId}{
+allow read, create, update, delete: if isAuthenticated();
+}
+}
+
+//フォローした時に保存される。ユーザーページで他のユーザーにも表示する
+match /following/{documentId}{
+allow read: if isAuthenticated();
+allow create, update, delete: if isUserAuthenticated(userId);
+}
+
+//自分がいいねした時に自分のDBに保存される。
+match /favorite/{documentId}{
+allow read, create, update, delete: if isUserAuthenticated(userId);
+}
+
+//フォローされた時に自分のDBに保存される。ユーザーページのフォロワー一覧で他のユーザーにも表示する
+match /followers/{documentId}{
+allow read, write: if isAuthenticated();
+}
+
+//フォローしている人の投稿。フォローしている人が投稿した時に自分のDBに保存される
+match /followingPosts/{documentId}{
+allow write: if isAuthenticated();
+allow read: if isUserAuthenticated(userId);
+}
+
+//フォロー、自分の投稿にコメント、いいねされた時自分のDBに保存される
+match /notice/{documentId}{
+allow create, update, delete: if isAuthenticated();
+allow read: if isUserAuthenticated(userId);
+}
+}
+}
+}

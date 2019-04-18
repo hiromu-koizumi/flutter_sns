@@ -4,9 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cos/parts/Image_url.dart';
 import 'package:flutter_cos/other_pages/login_page.dart';
-import 'package:flutter_cos/main.dart';
 import 'package:flutter_cos/posts/add_image_button.dart';
 import 'package:flutter_cos/posts/new_image.dart';
 import 'package:flutter_cos/posts/old_image.dart';
@@ -60,7 +58,6 @@ class _PostPageState extends State<PostPage> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
 
     //タイムラインから渡された引数があるか。ありの場合:編集の処理。なしの場合:新規投稿の処理。
