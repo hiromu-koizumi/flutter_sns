@@ -32,7 +32,7 @@ class _UserData {
 
   String searchKey;
   String userId;
-  //String makeUserID;
+//String makeUserID;
 }
 
 class _SettingPageState extends State<SettingPage> {
@@ -54,78 +54,82 @@ class _SettingPageState extends State<SettingPage> {
     _data.userId = widget.userInformation['userId'];
 
     return Scaffold(
-        appBar: AppBar(title: Text('設定'), actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.directions_run),
-            onPressed: () {
-              logoutDialog(context);
-            },
-          ),
-        ]),
-        body: SafeArea(
-            child: Form(
-                //グローバルキー。紐づけするためにある。
-                key: _formKey,
-                child: ListView(
-                    padding: const EdgeInsets.all(20.0),
-                    children: <Widget>[
-                      Column(
-                        children: <Widget>[
-                          //addimageButton(),
-                          addImageButton(),
-                          _imageFile == null
-                              ? OldImage(url: _data.url)
-                              : NewImage(imageFile: _imageFile),
-                        ],
-                      ),
+      appBar: AppBar(title: Text('設定'), actions: <Widget>[
+        IconButton(
+          icon: Icon(Icons.directions_run),
+          onPressed: () {
+            logoutDialog(context);
+          },
+        ),
+      ]),
+      body: SafeArea(
+        child: Form(
+          //グローバルキー。紐づけするためにある。
+          key: _formKey,
+          child: ListView(
+            padding: const EdgeInsets.all(20.0),
+            children: <Widget>[
+              Column(
+                children: <Widget>[
+                  //addimageButton(),
+                  addImageButton(),
+                  _imageFile == null
+                      ? OldImage(url: _data.url)
+                      : NewImage(imageFile: _imageFile),
+                ],
+              ),
 
-                      //ユーザー名テキストフィールド
-                      TextFormField(
-                        decoration: const InputDecoration(
-                          // hintText: 'name',
-                          labelText: 'ユーザー名',
-                        ),
+              //ユーザー名テキストフィールド
+              TextFormField(
+                decoration: const InputDecoration(
+                  // hintText: 'name',
+                  labelText: 'ユーザー名',
+                ),
 
-                        //投稿ボタンが押されたら処理が始まる
-                        onSaved: (String value) {
-                          //valueの中にテキストフィールドに書き込んだ文字が格納されている
-                          _data.userName = value;
-                        },
+                //投稿ボタンが押されたら処理が始まる
+                onSaved: (String value) {
+                  //valueの中にテキストフィールドに書き込んだ文字が格納されている
+                  _data.userName = value;
+                },
 
-                        //編集ボタン押した後のコメント欄に元あった文字を表示するのに必要。
-                        initialValue: _data.userName,
-                      ),
+                //編集ボタン押した後のコメント欄に元あった文字を表示するのに必要。
+                initialValue: _data.userName,
+              ),
 
-                      //プロフィールテキストフィールド
-                      TextFormField(
-                        decoration: const InputDecoration(
-                          //hintText: 'comment',
-                          labelText: '自己紹介',
-                        ),
+              //プロフィールテキストフィールド
+              TextFormField(
+                decoration: const InputDecoration(
+                  //hintText: 'comment',
+                  labelText: '自己紹介',
+                ),
 
-                        //投稿ボタンが押されたら処理が始まる
-                        onSaved: (String value) {
-                          //valueの中にテキストフィールドに書き込んだ文字が格納されている
-                          _data.profile = value;
-                        },
+                //投稿ボタンが押されたら処理が始まる
+                onSaved: (String value) {
+                  //valueの中にテキストフィールドに書き込んだ文字が格納されている
+                  _data.profile = value;
+                },
 
-                        //編集ボタン押した後のコメント欄に元あった文字を表示するのに必要。
-                        initialValue: _data.profile,
-                      ),
+                //編集ボタン押した後のコメント欄に元あった文字を表示するのに必要。
+                initialValue: _data.profile,
+              ),
 
-                      //投稿ボタン
-                      RaisedButton(
-                          elevation: 7.0,
-                          child: Text('保存'),
-                          textColor: Colors.white,
-                          color: Colors.blue,
-                          onPressed: () {
+              //投稿ボタン
+              RaisedButton(
+                  elevation: 7.0,
+                  child: Text('保存'),
+                  textColor: Colors.white,
+                  color: Colors.blue,
+                  onPressed: () {
 //                        //onSavedに処理を送っている。_formKeyがついているOnSavedに飛ぶ
-                            _formKey.currentState.save();
-                            uploadText(_userReference);
-                            Navigator.pop(context);
-                          })
-                    ]))));
+                    _formKey.currentState.save();
+                    uploadText(_userReference);
+                    Navigator.pop(context);
+                  })
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   void logoutDialog(BuildContext context) {
@@ -262,7 +266,7 @@ class _SettingPageState extends State<SettingPage> {
     );
   }
 
-  //後々使うかもしれないから消さないで！写真を追加するボタンを押されたとき呼ばれる処理。使う写真を
+//後々使うかもしれないから消さないで！写真を追加するボタンを押されたとき呼ばれる処理。使う写真を
 //  Widget _openImagePicker(BuildContext context) {
 //    showModalBottomSheet(
 //        context: context,

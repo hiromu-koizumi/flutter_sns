@@ -57,6 +57,7 @@ class _MyPageState extends State<MyPages> {
 
   @override
   Widget build(BuildContext context) {
+    if (firebaseUser.isAnonymous) return LoginPage();
     return Scaffold(
       appBar: AppBar(title: Text('マイページ'), actions: <Widget>[
         IconButton(

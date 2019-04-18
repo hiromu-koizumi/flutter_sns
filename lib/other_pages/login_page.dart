@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cos/main.dart';
+import 'package:flutter_cos/other_pages/password_resetting_page.dart';
 import 'package:flutter_cos/user_pages/my_page/my_page.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
@@ -25,15 +26,15 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Card(
         child: Center(
-      child: new Form(
+      child: Form(
         key: _formKey,
-        child: new SingleChildScrollView(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: new Column(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               const SizedBox(height: 24.0),
-              new TextFormField(
+              TextFormField(
                 // controller: emailInputController,
                 decoration: const InputDecoration(
                   icon: const Icon(Icons.mail),
@@ -57,9 +58,9 @@ class _LoginPageState extends State<LoginPage> {
                 },
               ),
               const SizedBox(height: 24.0),
-              new TextFormField(
+              TextFormField(
                 //  controller: passwordInputController,
-                decoration: new InputDecoration(
+                decoration: InputDecoration(
                   icon: const Icon(Icons.vpn_key),
                   border: const UnderlineInputBorder(),
                   labelText: 'Password',
@@ -101,6 +102,22 @@ class _LoginPageState extends State<LoginPage> {
                       },
                     ),
                   ]),
+              const SizedBox(height: 30.0),
+              RaisedButton(
+                child: const Text('passwordを忘れた方'),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      settings: const RouteSettings(name: "/MyPage"),
+
+                      //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
+                      builder: (BuildContext context) =>
+                          PasswordResettingPage(),
+                    ),
+                  );
+                },
+              ),
             ],
           ),
         ),
