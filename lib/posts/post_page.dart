@@ -10,6 +10,8 @@ import 'package:flutter_cos/main.dart';
 import 'package:flutter_cos/posts/add_image_button.dart';
 import 'package:flutter_cos/posts/new_image.dart';
 import 'package:flutter_cos/posts/old_image.dart';
+import 'package:flutter_cos/posts/post_button.dart';
+import 'package:flutter_cos/posts/tag_add_button.dart';
 import 'package:flutter_cos/user_pages/my_page/my_page.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
@@ -238,47 +240,40 @@ class _PostPageState extends State<PostPage> {
                     ),
                   ),
 
-                  Column(children: <Widget>[
-                    TextField(
-                      controller: myController,
-                      decoration: const InputDecoration(
-                        hintText: '入力したらタグ追加ボタンを押してね！',
-                        labelText: 'タグ',
-                      ),
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        RaisedButton(
-                            elevation: 7.0,
-                            child: Text('タグを追加'),
-                            textColor: Colors.white,
-                            color: Colors.blue,
-                            onPressed: () {
-                              _data.tagList.add(myController.text);
-                              tag.add(_data.tagList);
-                              print(_data.tagList);
-
-                              myController.text = "";
-                            }),
-                        IconButton(
-                          icon: Icon(Icons.highlight_off),
-                          onPressed: () {
-                            _data.tagList.removeLast();
-                            tag.add(_data.tagList);
-                          },
+                  Column(
+                    children: <Widget>[
+                      TextField(
+                        controller: myController,
+                        decoration: const InputDecoration(
+                          hintText: '入力したらタグ追加ボタンを押してね！',
+                          labelText: 'タグ',
                         ),
-                      ],
-                    ),
-                  ]),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          TagAddButton(onPressed: () {
+                            _data.tagList.add(myController.text);
+                            tag.add(_data.tagList);
+                            print(_data.tagList);
+
+                            myController.text = "";
+                          }),
+                          IconButton(
+                            icon: Icon(Icons.highlight_off),
+                            onPressed: () {
+                              _data.tagList.removeLast();
+                              tag.add(_data.tagList);
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                   SizedBox(height: 15),
 
                   //投稿ボタン
-                  RaisedButton(
-                    elevation: 7.0,
-                    child: Text('投稿'),
-                    textColor: Colors.white,
-                    color: Colors.blue,
+                  PostButton(
                     onPressed: () {
                       if (_formKey.currentState.validate()) {
                         if (_data.url == null && _imageFile == null) {
