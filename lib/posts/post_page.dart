@@ -56,6 +56,9 @@ class _PostPageState extends State<PostPage> {
   TextEditingController myController = TextEditingController();
   bool deleteFlg = false;
 
+  List<Widget> tags = [];
+  List<Widget> cardChildren;
+
   @override
   void initState() {
     super.initState();
@@ -72,7 +75,6 @@ class _PostPageState extends State<PostPage> {
         _data.tagList.add(n);
       });
 
-      print(tag);
       //編集ボタン押したときのデータベースの参照先
       _allPostsReference =
           Firestore.instance.collection('posts').document(_data.documentId);
@@ -96,9 +98,6 @@ class _PostPageState extends State<PostPage> {
     super.dispose();
   }
 
-  //tagListに代入された値を画面に表示するために必要
-  StreamController<List> tag = StreamController<List>.broadcast();
-
   @override
   Widget build(BuildContext context) {
     if (firebaseUser.isAnonymous) {
@@ -115,14 +114,7 @@ class _PostPageState extends State<PostPage> {
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
           )));
     } else {
-      //streamBuildrtがreturnで返されたあとじゃないとtagに代入しても反応しない。だから一秒遅らせて、streambuilderが返されてから代入している
-      Future.delayed(new Duration(seconds: 1), () {
-        if (widget.document != null) {
-          //widget.document['tag'].map((item) => _data.tagList = item);
-          print("kokodaupppp${_data.tagList}");
-          tag.add(_data.tagList);
-        }
-      });
+      tagMake();
 
       return Scaffold(
         appBar: AppBar(
@@ -208,38 +200,10 @@ class _PostPageState extends State<PostPage> {
                     height: 20,
                   ),
 
-                  Container(
-                    child: StreamBuilder(
-                      stream: tag.stream,
-                      builder: (context, snapshot) {
-                        if (!snapshot.hasData) return const Text('');
-                        // print(snapshot.data.length);
-                        return Row(
-                          children: _data.tagList
-                              .map((item) => Flexible(
-                                  child: Container(
-                                      decoration: ShapeDecoration(
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.all(
-                                            Radius.circular(5.0),
-                                          ),
-                                        ),
-                                        color: Colors.black12,
-                                      ),
-                                      margin:
-                                          EdgeInsets.only(right: 5, left: 5),
-                                      padding: EdgeInsets.all(5),
-                                      child: Text(
-                                        item,
-                                        //   softWrap: true,
-                                      ))))
-                              .toList(),
-                        );
-                        //Text(snapshot.data.toString());
-                      },
-                    ),
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: cardChildren,
                   ),
-
                   Column(
                     children: <Widget>[
                       TextField(
@@ -253,19 +217,14 @@ class _PostPageState extends State<PostPage> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
                           TagAddButton(onPressed: () {
-                            _data.tagList.add(myController.text);
-                            tag.add(_data.tagList);
+                            setState(() {
+                              _data.tagList.add(myController.text);
+                            });
+
                             print(_data.tagList);
 
                             myController.text = "";
                           }),
-                          IconButton(
-                            icon: Icon(Icons.highlight_off),
-                            onPressed: () {
-                              _data.tagList.removeLast();
-                              tag.add(_data.tagList);
-                            },
-                          ),
                         ],
                       ),
                     ],
@@ -309,6 +268,42 @@ class _PostPageState extends State<PostPage> {
         ),
       );
     }
+  }
+
+  void tagMake() {
+    cardChildren = <Widget>[
+      Container(
+        padding: const EdgeInsets.only(top: 16.0, bottom: 4.0),
+        alignment: Alignment.center,
+        //child: Text("タグ", textAlign: TextAlign.start),
+      ),
+    ];
+
+    tags = _data.tagList.map<Widget>((name) {
+      return Chip(
+        key: ValueKey<String>(name),
+        label: Text(name),
+        onDeleted: () {
+          setState(() {
+            print('deletesite');
+            _data.tagList.remove(name);
+          });
+        },
+      );
+    }).toList();
+    if (_data.tagList.isNotEmpty)
+      cardChildren.add(
+        Wrap(
+          children: tags.map<Widget>(
+            (Widget chip) {
+              return Padding(
+                padding: const EdgeInsets.all(2.0),
+                child: chip,
+              );
+            },
+          ).toList(),
+        ),
+      );
   }
 
   //写真が追加、変更されたか

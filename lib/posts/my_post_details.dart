@@ -43,11 +43,40 @@ class _MyPostDetailsState extends State<MyPostDetails> {
     _data.documentId = widget.document['documentId'];
     _data.tagList = widget.document['tag'];
 
-    DocumentReference _mainReference;
+    final List<Widget> tag = _data.tagList.map<Widget>((name) {
+      return InputChip(
+        label: Text(name),
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                settings: const RouteSettings(name: "/postSearch"),
+                builder: (BuildContext context) => SearchResultPage(name)),
+          );
+        },
+      );
+    }).toList();
 
-    _mainReference = Firestore.instance
-        .collection('posts')
-        .document(widget.document.documentID);
+    final List<Widget> cardChildren = <Widget>[
+      Container(
+        padding: const EdgeInsets.only(top: 16.0, bottom: 4.0),
+        alignment: Alignment.center,
+        //child: Text("タグ", textAlign: TextAlign.start),
+      ),
+    ];
+    if (tag.isNotEmpty)
+      cardChildren.add(
+        Wrap(
+          children: tag.map<Widget>(
+            (Widget chip) {
+              return Padding(
+                padding: const EdgeInsets.all(2.0),
+                child: chip,
+              );
+            },
+          ).toList(),
+        ),
+      );
 
     return Scaffold(
       appBar: AppBar(title: const Text('')),
@@ -118,37 +147,11 @@ class _MyPostDetailsState extends State<MyPostDetails> {
                 subtitle: Text(_data.time.toString().substring(0, 10)),
                 //trailing: Text(_data.tagList.toString()),
               ),
-              Row(
-                  children: _data.tagList
-                      .map((item) => InkWell(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  settings:
-                                      const RouteSettings(name: "/postDetails"),
 
-                                  //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
-                                  builder: (BuildContext context) =>
-                                      SearchResultPage(item)),
-                            );
-                          },
-                          child: Container(
-                              decoration: ShapeDecoration(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.all(
-                                    Radius.circular(5.0),
-                                  ),
-                                ),
-                                color: Colors.black12,
-                              ),
-                              margin: EdgeInsets.only(right: 5, left: 5),
-                              padding: EdgeInsets.all(5),
-                              child: Text(item))))
-                      .toList()),
-              SizedBox(
-                height: 15,
-              )
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: cardChildren,
+              ),
             ]),
           ),
         ),

@@ -51,7 +51,7 @@ class _PostDetailsState extends State<PostDetails> {
     final tagList = _data.tagList;
     final time = _data.time;
 
-    final List<Widget> chips = tagList.map<Widget>((name) {
+    final List<Widget> tag = tagList.map<Widget>((name) {
       return InputChip(
         label: Text(name),
         onPressed: () {
@@ -72,10 +72,10 @@ class _PostDetailsState extends State<PostDetails> {
         //child: Text("タグ", textAlign: TextAlign.start),
       ),
     ];
-    if (chips.isNotEmpty)
+    if (tag.isNotEmpty)
       cardChildren.add(
         Wrap(
-          children: chips.map<Widget>(
+          children: tag.map<Widget>(
             (Widget chip) {
               return Padding(
                 padding: const EdgeInsets.all(2.0),
@@ -114,13 +114,11 @@ class _PostDetailsState extends State<PostDetails> {
             subtitle: Text(time.toString().substring(0, 10)),
           ),
 
-          Card(
-            semanticContainer: false,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: cardChildren,
-            ),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: cardChildren,
           ),
+
           ButtonTheme.bar(
             child: ButtonBar(
               children: <Widget>[

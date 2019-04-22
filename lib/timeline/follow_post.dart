@@ -14,6 +14,41 @@ class FollowPost extends StatelessWidget {
   }) : super(key: key);
   @override
   Widget build(BuildContext context) {
+    final List<Widget> tag = document["tag"].map<Widget>((name) {
+      return InputChip(
+        label: Text(name),
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                settings: const RouteSettings(name: "/postSearch"),
+                builder: (BuildContext context) => SearchResultPage(name)),
+          );
+        },
+      );
+    }).toList();
+
+    final List<Widget> cardChildren = <Widget>[
+      Container(
+        padding: const EdgeInsets.only(top: 16.0, bottom: 4.0),
+        alignment: Alignment.center,
+        //child: Text("タグ", textAlign: TextAlign.start),
+      ),
+    ];
+    if (tag.isNotEmpty)
+      cardChildren.add(
+        Wrap(
+          children: tag.map<Widget>(
+            (Widget chip) {
+              return Padding(
+                padding: const EdgeInsets.all(2.0),
+                child: chip,
+              );
+            },
+          ).toList(),
+        ),
+      );
+
     return Column(
       children: <Widget>[
         Card(
@@ -30,37 +65,14 @@ class FollowPost extends StatelessWidget {
               subtitle: Text(document["time"].toString().substring(0, 10)),
             ),
 
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: cardChildren,
+            ),
+
             ButtonTheme.bar(
               child: ButtonBar(
                 children: <Widget>[
-                  Row(
-                      children: document["tag"]
-                          .map<Widget>((item) => InkWell(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      settings: const RouteSettings(
-                                          name: "/postDetails"),
-
-                                      //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
-                                      builder: (BuildContext context) =>
-                                          SearchResultPage(item)),
-                                );
-                              },
-                              child: Container(
-                                  decoration: ShapeDecoration(
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.all(
-                                        Radius.circular(5.0),
-                                      ),
-                                    ),
-                                    color: Colors.black12,
-                                  ),
-                                  margin: EdgeInsets.only(right: 5, left: 5),
-                                  padding: EdgeInsets.all(5),
-                                  child: Text(item))))
-                          .toList()),
                   FavoriteButton(document: document),
                   FlatButton(
                     child: const Icon(Icons.comment),
