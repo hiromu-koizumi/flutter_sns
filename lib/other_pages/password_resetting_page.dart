@@ -10,6 +10,7 @@ class _PasswordResettingPageState extends State<PasswordResettingPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   String email;
+  var auth = FirebaseAuth.instance;
 
   @override
   Widget build(BuildContext context) {
@@ -82,6 +83,4 @@ class _PasswordResettingPageState extends State<PasswordResettingPage> {
       ],
     ));
   }
-
-  var auth = FirebaseAuth.instance;
 }

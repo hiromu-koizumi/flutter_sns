@@ -181,6 +181,7 @@ class _PostPageState extends State<PostPage> {
                           : NewImage(imageFile: _imageFile),
                   //ImageInput(),
                   TextFormField(
+                    maxLines: 5,
                     decoration: const InputDecoration(
                       //   hintText: 'comment',
                       labelText: 'コメント',
@@ -206,6 +207,7 @@ class _PostPageState extends State<PostPage> {
                   SizedBox(
                     height: 20,
                   ),
+
                   Container(
                     child: StreamBuilder(
                       stream: tag.stream,
@@ -214,8 +216,8 @@ class _PostPageState extends State<PostPage> {
                         // print(snapshot.data.length);
                         return Row(
                           children: _data.tagList
-                              .map(
-                                (item) => Container(
+                              .map((item) => Flexible(
+                                  child: Container(
                                       decoration: ShapeDecoration(
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.all(
@@ -227,9 +229,10 @@ class _PostPageState extends State<PostPage> {
                                       margin:
                                           EdgeInsets.only(right: 5, left: 5),
                                       padding: EdgeInsets.all(5),
-                                      child: Text(item),
-                                    ),
-                              )
+                                      child: Text(
+                                        item,
+                                        //   softWrap: true,
+                                      ))))
                               .toList(),
                         );
                         //Text(snapshot.data.toString());

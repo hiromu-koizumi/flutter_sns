@@ -32,86 +32,89 @@ class _MessagePageState extends State<MessagePage> {
   @override
   Widget build(BuildContext context) {
     //scaffoldにしてキーボードを出すと入力欄が上に上がりすぎる
-    return Card(
-      child: Column(
-        children: <Widget>[
-          SizedBox(height: 10),
-          //右隅に配置するためのRow
-          Row(
-            children: <Widget>[
-              IconButton(
-                iconSize: 35,
-                icon: Icon(Icons.keyboard_arrow_left),
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-              ),
-            ],
-          ),
-
-          Flexible(
-            child: StreamBuilder<QuerySnapshot>(
-                stream: Firestore.instance
-                    .collection('posts')
-                    //imagePathとドキュメントIDは同じ
-                    .document(widget.document["documentId"])
-                    .collection("chat_room")
-                    .orderBy("created_at", descending: true)
-                    .snapshots(),
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) return Container();
-                  return ListView.builder(
-                    padding: EdgeInsets.all(8.0),
-                    reverse: true,
-                    itemBuilder: (_, int index) {
-                      DocumentSnapshot document =
-                          snapshot.data.documents[index];
-
-                      bool isOwnMessage = false;
-                      if (document['userId'] == firebaseUser.uid) {
-                        isOwnMessage = true;
-                      }
-
-                      //メッセージを右左どちらに表示するかを決めている
-                      return isOwnMessage
-                          ? OwnMessage(document: document)
-                          : Message(document: document);
-                    },
-                    itemCount: snapshot.data.documents.length,
-                  );
-                }),
-          ),
-
-          //線
-          Divider(height: 1.0),
-
-          Container(
-            margin: EdgeInsets.only(bottom: 90.0, right: 10.0, left: 10.0),
-            child: Row(
+    return Scaffold(
+      body: SafeArea(
+        child: Column(
+          children: <Widget>[
+            SizedBox(height: 10),
+            //右隅に配置するためのRow
+            Row(
               children: <Widget>[
-                Flexible(
-                  child: TextField(
-                    controller: _controller,
-
-                    //チェックマークを押したときも送信できるようにしている
-                    onSubmitted: _handleSubmit,
-                    decoration: InputDecoration.collapsed(hintText: "メッセージの送信"),
-                  ),
-                ),
-                Container(
-                  child: IconButton(
-                      icon: Icon(
-                        Icons.send,
-                        color: Colors.blue,
-                      ),
-                      onPressed: () {
-                        _handleSubmit(_controller.text);
-                      }),
+                IconButton(
+                  iconSize: 35,
+                  icon: Icon(Icons.keyboard_arrow_left),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
                 ),
               ],
             ),
-          ),
-        ],
+
+            Flexible(
+              child: StreamBuilder<QuerySnapshot>(
+                  stream: Firestore.instance
+                      .collection('posts')
+                      //imagePathとドキュメントIDは同じ
+                      .document(widget.document["documentId"])
+                      .collection("chat_room")
+                      .orderBy("created_at", descending: true)
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) return Container();
+                    return ListView.builder(
+                      padding: EdgeInsets.all(8.0),
+                      reverse: true,
+                      itemBuilder: (_, int index) {
+                        DocumentSnapshot document =
+                            snapshot.data.documents[index];
+
+                        bool isOwnMessage = false;
+                        if (document['userId'] == firebaseUser.uid) {
+                          isOwnMessage = true;
+                        }
+
+                        //メッセージを右左どちらに表示するかを決めている
+                        return isOwnMessage
+                            ? OwnMessage(document: document)
+                            : Message(document: document);
+                      },
+                      itemCount: snapshot.data.documents.length,
+                    );
+                  }),
+            ),
+
+            //線
+            Divider(height: 1.0),
+
+            Container(
+              margin: EdgeInsets.only(right: 10.0, left: 10.0),
+              child: Row(
+                children: <Widget>[
+                  Flexible(
+                    child: TextField(
+                      controller: _controller,
+
+                      //チェックマークを押したときも送信できるようにしている
+                      onSubmitted: _handleSubmit,
+                      decoration:
+                          InputDecoration.collapsed(hintText: "メッセージの送信"),
+                    ),
+                  ),
+                  Container(
+                    child: IconButton(
+                        icon: Icon(
+                          Icons.send,
+                          color: Colors.blue,
+                        ),
+                        onPressed: () {
+                          _handleSubmit(_controller.text);
+                        }),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

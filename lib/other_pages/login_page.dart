@@ -131,18 +131,8 @@ class _LoginPageState extends State<LoginPage> {
       //ログインしている
       await _auth.signInWithEmailAndPassword(email: email, password: password);
       firebaseUser = await _auth.currentUser();
-
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          settings: const RouteSettings(name: "/MyPage"),
-
-          //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
-          builder: (BuildContext context) => MyPages(),
-        ),
-      );
-
-      //Navigator.pushNamedAndRemoveUntil(context, "/", (_) => false);
+      Navigator.pushAndRemoveUntil(context,
+          MaterialPageRoute(builder: (context) => MyPages()), (_) => false);
     } catch (e) {
       Fluttertoast.showToast(msg: "Firebaseのログインに失敗しました");
     }
@@ -169,16 +159,8 @@ class _LoginPageState extends State<LoginPage> {
         "profile": ""
       });
 
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          settings: const RouteSettings(name: "/MyPage"),
-
-          //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
-          builder: (BuildContext context) => MyPages(),
-        ),
-      );
-      //Navigator.pushNamedAndRemoveUntil(context, "/MyPage", (_) => false);
+      Navigator.pushAndRemoveUntil(context,
+          MaterialPageRoute(builder: (context) => MyPages()), (_) => false);
     } catch (e) {
       Fluttertoast.showToast(
           msg: "ごめんなさい。。このベールアドレス、パスワードは登録されています。もう一度別のもので試してみてください！！");

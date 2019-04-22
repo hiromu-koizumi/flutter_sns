@@ -40,6 +40,8 @@ class _SettingPageState extends State<SettingPage> {
 
   final _UserData _data = _UserData();
 
+  String logoutOrDelete;
+
   @override
   Widget build(BuildContext context) {
     DocumentReference _userReference;
@@ -54,13 +56,36 @@ class _SettingPageState extends State<SettingPage> {
     _data.userId = widget.userInformation['userId'];
 
     return Scaffold(
-      appBar: AppBar(title: Text('設定'), actions: <Widget>[
-        IconButton(
-          icon: Icon(Icons.directions_run),
-          onPressed: () {
-            logoutDialog(context);
-          },
+      endDrawer: Drawer(
+        child: Column(
+          children: <Widget>[
+            AppBar(
+              title: Text("設定"),
+            ),
+            ListTile(
+              title: Text("ログアウト"),
+              onTap: () {
+                logoutOrDelete = "logout";
+                logoutDialog(context);
+              },
+            ),
+            ListTile(
+              title: Text("アカウントを削除"),
+              onTap: () {
+                logoutOrDelete = "delete";
+                logoutDialog(context);
+              },
+            )
+          ],
         ),
+      ),
+      appBar: AppBar(title: Text('設定'), actions: <Widget>[
+//        IconButton(
+//          icon: Icon(Icons.directions_run),
+//          onPressed: () {
+//            logoutDialog(context);
+//          },
+//        ),
       ]),
       body: SafeArea(
         child: Form(
@@ -146,11 +171,23 @@ class _SettingPageState extends State<SettingPage> {
                 },
               ),
               FlatButton(
-                  child: const Text('ログアウト'),
+                  child: logoutOrDelete == "logout"
+                      ? Text('ログアウト')
+                      : Text("アカウントを削除"),
                   onPressed: () {
-                    _auth.signOut();
-                    Navigator.pushNamedAndRemoveUntil(
-                        context, "/", (_) => false);
+                    if (logoutOrDelete == "logout") {
+                      _auth.signOut();
+                      firebaseUser = null;
+                      Navigator.pushNamedAndRemoveUntil(
+                          context, "/", (_) => false);
+                    } else if (logoutOrDelete == "delete") {
+                      firebaseUser.delete();
+                      firebaseUser = null;
+                      Navigator.pushNamedAndRemoveUntil(
+                          context, "/", (_) => false);
+                    } else {
+                      print("失敗");
+                    }
                   }),
             ],
           ),

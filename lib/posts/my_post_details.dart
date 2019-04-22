@@ -50,131 +50,110 @@ class _MyPostDetailsState extends State<MyPostDetails> {
         .document(widget.document.documentID);
 
     return Scaffold(
-        appBar: AppBar(title: const Text('')),
-        body: SingleChildScrollView(
-            child: Padding(
-                padding: const EdgeInsets.only(bottom: 50.0),
-                child: Card(
-                  child:
-                      Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
-                    UserName(document: widget.document),
+      appBar: AppBar(title: const Text('')),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 50.0),
+          child: Card(
+            child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
+              UserName(document: widget.document),
 
-                    //写真表示
-                    ImageUrl(imageUrl: _data.url),
+              //写真表示
+              ImageUrl(imageUrl: _data.url),
 
-                    //編集ボタン
-                    ButtonTheme.bar(
-                      child: ButtonBar(
-                        alignment: MainAxisAlignment.start,
-                        children: <Widget>[
-//                          favoriteButton(),
-                          FlatButton(
-                            child: loveNumber(),
-                            onPressed: () {
-                              //コメントページに画面遷移
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    settings:
-                                        const RouteSettings(name: "/comment"),
-                                    builder: (BuildContext context) =>
-                                        MyFavoritePage(widget.document)),
-                              );
-                            },
-                          ),
-                          FlatButton(
-                            child: const Icon(Icons.comment),
-                            onPressed: () {
-                              print("コメントボタンを押しました");
-
-                              //コメントページに画面遷移
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    settings:
-                                        const RouteSettings(name: "/comment"),
-                                    builder: (BuildContext context) =>
-                                        MessagePage(widget.document)),
-                              );
-                            },
-                          ),
-                          FlatButton(
-                            child: const Icon(Icons.more_horiz),
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    settings:
-                                        const RouteSettings(name: "/PostPage"),
-                                    builder: (BuildContext context) =>
-                                        PostPage(widget.document)),
-                              );
-                            },
-                          )
-                        ],
-                      ),
+              //編集ボタン
+              ButtonTheme.bar(
+                child: ButtonBar(
+                  alignment: MainAxisAlignment.start,
+                  children: <Widget>[
+                    FlatButton(
+                      child: loveNumber(),
+                      onPressed: () {
+                        //コメントページに画面遷移
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              settings: const RouteSettings(name: "/comment"),
+                              builder: (BuildContext context) =>
+                                  MyFavoritePage(widget.document)),
+                        );
+                      },
                     ),
+                    FlatButton(
+                      child: const Icon(Icons.comment),
+                      onPressed: () {
+                        print("コメントボタンを押しました");
 
-                    Row(
-                      children: <Widget>[
-                        Column(
-                          children: <Widget>[
-                            Text(
-                              _data.comment,
-                              style: TextStyle(fontSize: 17),
-                            ),
-                            SizedBox(
-                              height: 15,
-                            ),
-                            //substringで表示する時刻を短縮している
-                            Text(
-                                _data.time.toString().substring(
-                                      0,
-                                      10,
-                                    ),
-                                style: TextStyle(
-                                    fontSize: 14, color: Colors.black26)),
-                            SizedBox(
-                              height: 10,
-                            )
-                          ],
-                        ),
-                        SizedBox(
-                          width: 25,
-                        ),
-                        Row(
-                            children: _data.tagList
-                                .map((item) => InkWell(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            settings: const RouteSettings(
-                                                name: "/postDetails"),
-
-                                            //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
-                                            builder: (BuildContext context) =>
-                                                SearchResultPage(item)),
-                                      );
-                                    },
-                                    child: Container(
-                                        decoration: ShapeDecoration(
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.all(
-                                              Radius.circular(5.0),
-                                            ),
-                                          ),
-                                          color: Colors.black12,
-                                        ),
-                                        margin:
-                                            EdgeInsets.only(right: 5, left: 5),
-                                        padding: EdgeInsets.all(5),
-                                        child: Text(item))))
-                                .toList()),
-                      ],
+                        //コメントページに画面遷移
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              settings: const RouteSettings(name: "/comment"),
+                              builder: (BuildContext context) =>
+                                  MessagePage(widget.document)),
+                        );
+                      },
+                    ),
+                    FlatButton(
+                      child: const Icon(Icons.more_horiz),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              settings: const RouteSettings(name: "/PostPage"),
+                              builder: (BuildContext context) =>
+                                  PostPage(widget.document)),
+                        );
+                      },
                     )
-                  ]),
-                ))));
+                  ],
+                ),
+              ),
+
+              ListTile(
+                //leading: const Icon(Icons.android),
+                title: Text(_data.comment),
+
+                //substringで表示する時刻を短縮している
+                subtitle: Text(_data.time.toString().substring(0, 10)),
+                //trailing: Text(_data.tagList.toString()),
+              ),
+              Row(
+                  children: _data.tagList
+                      .map((item) => InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  settings:
+                                      const RouteSettings(name: "/postDetails"),
+
+                                  //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
+                                  builder: (BuildContext context) =>
+                                      SearchResultPage(item)),
+                            );
+                          },
+                          child: Container(
+                              decoration: ShapeDecoration(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(5.0),
+                                  ),
+                                ),
+                                color: Colors.black12,
+                              ),
+                              margin: EdgeInsets.only(right: 5, left: 5),
+                              padding: EdgeInsets.all(5),
+                              child: Text(item))))
+                      .toList()),
+              SizedBox(
+                height: 15,
+              )
+            ]),
+          ),
+        ),
+      ),
+    );
   }
 
   //love数をDBから取得し表示

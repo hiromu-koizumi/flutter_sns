@@ -45,27 +45,57 @@ class _PostDetailsState extends State<PostDetails> {
     _data.tagList = widget.document['tag'];
     _data.time = widget.document['time'];
 
-    DocumentReference _mainReference;
-
-    _mainReference = Firestore.instance
-        .collection('posts')
-        .document(widget.document.documentID);
-
+    //こうした方がわかりやすい？
     final url = _data.url;
     final comment = _data.comment;
     final tagList = _data.tagList;
     final time = _data.time;
 
+    final List<Widget> chips = tagList.map<Widget>((name) {
+      return InputChip(
+        label: Text(name),
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                settings: const RouteSettings(name: "/postSearch"),
+                builder: (BuildContext context) => SearchResultPage(name)),
+          );
+        },
+      );
+    }).toList();
+
+    final List<Widget> cardChildren = <Widget>[
+      Container(
+        padding: const EdgeInsets.only(top: 16.0, bottom: 4.0),
+        alignment: Alignment.center,
+        //child: Text("タグ", textAlign: TextAlign.start),
+      ),
+    ];
+    if (chips.isNotEmpty)
+      cardChildren.add(
+        Wrap(
+          children: chips.map<Widget>(
+            (Widget chip) {
+              return Padding(
+                padding: const EdgeInsets.all(2.0),
+                child: chip,
+              );
+            },
+          ).toList(),
+        ),
+      );
+
     return Scaffold(
       appBar: AppBar(title: const Text('')),
       body: SingleChildScrollView(
-        child: buildPadding(context, url, comment, tagList, time),
+        child: buildPadding(context, url, comment, time, cardChildren),
       ),
     );
   }
 
   Widget buildPadding(BuildContext context, String url, String comment,
-      List<dynamic> tagList, DateTime time) {
+      DateTime time, cardChildren) {
     final documentSnapshot = widget.document;
 
     return Padding(
@@ -78,45 +108,22 @@ class _PostDetailsState extends State<PostDetails> {
           ImageUrl(imageUrl: url),
 
           ListTile(
-            //leading: const Icon(Icons.android),
             title: Text(comment),
 
             //substringで表示する時刻を短縮している
             subtitle: Text(time.toString().substring(0, 10)),
-            //trailing: Text(_data.tagList.toString()),
           ),
 
+          Card(
+            semanticContainer: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: cardChildren,
+            ),
+          ),
           ButtonTheme.bar(
             child: ButtonBar(
               children: <Widget>[
-                Row(
-                    children: tagList
-                        .map((item) => InkWell(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    settings: const RouteSettings(
-                                        name: "/postDetails"),
-
-                                    //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
-                                    builder: (BuildContext context) =>
-                                        SearchResultPage(item)),
-                              );
-                            },
-                            child: Container(
-                                decoration: ShapeDecoration(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.all(
-                                      Radius.circular(5.0),
-                                    ),
-                                  ),
-                                  color: Colors.black12,
-                                ),
-                                margin: EdgeInsets.only(right: 5, left: 5),
-                                padding: EdgeInsets.all(5),
-                                child: Text(item))))
-                        .toList()),
                 FavoriteButton(
                   document: documentSnapshot,
                 ),
