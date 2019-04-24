@@ -48,10 +48,12 @@ class _PostPageState extends State<PostPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final _FormData _data = _FormData();
   final String uuid = Uuid().v1();
+
   //一つにまとめられると思う。新着に投稿を乗せるため保存先を2つにしてある
   //新規投稿時のデータベース保存先作成
   DocumentReference _allPostsReference;
   DocumentReference _userPostsReference;
+
 //textfieldの中に書き込まれた文字を取得するために必要
   TextEditingController myController = TextEditingController();
   bool deleteFlg = false;
@@ -102,9 +104,9 @@ class _PostPageState extends State<PostPage> {
   Widget build(BuildContext context) {
     if (firebaseUser.isAnonymous) {
       return Scaffold(
-          appBar: AppBar(title: const Text('')),
-          body: Center(
-              child: Text(
+        appBar: AppBar(title: const Text('')),
+        body: Center(
+          child: Text(
             "投稿機能を使うには登録が必要です\t下の顔のマークから登録おねがいします!！",
             //textの折返しのために必要
             softWrap: true,
@@ -112,7 +114,9 @@ class _PostPageState extends State<PostPage> {
 
             textAlign: TextAlign.center,
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-          )));
+          ),
+        ),
+      );
     } else {
       tagMake();
 
@@ -132,7 +136,8 @@ class _PostPageState extends State<PostPage> {
                       final StorageReference firebaseStorageRef =
                           FirebaseStorage.instance
                               .ref()
-                              .child('image')
+                              .child('postImage')
+                              .child(firebaseUser.uid)
                               .child('${_data.imagePath}');
                       firebaseStorageRef.delete();
 
@@ -141,8 +146,12 @@ class _PostPageState extends State<PostPage> {
                       //firebaseDatabaseからデータを削除
                       _allPostsReference.delete();
                       _userPostsReference.delete();
-                      Navigator.pop(context);
-                      Navigator.pop(context);
+                      Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => MyPages(),
+                          ),
+                          (_) => false);
                     },
             )
           ],
@@ -382,7 +391,8 @@ class _PostPageState extends State<PostPage> {
         //firebaseStorageからデータを削除
         final StorageReference firebaseStorageRef = FirebaseStorage.instance
             .ref()
-            .child('image')
+            .child('postImage')
+            .child(firebaseUser.uid)
             .child('${_data.imagePath}');
         firebaseStorageRef.delete();
       }
@@ -390,15 +400,17 @@ class _PostPageState extends State<PostPage> {
       //_imageFileに格納されている画像をfirebaseStorageに保存している。
       final StorageReference firebaseStorageRef =
           //imageフォルダの中に写真を保存している
-          FirebaseStorage.instance.ref().child('image').child('$uuid.jpeg');
+          FirebaseStorage.instance
+              .ref()
+              .child('postImage')
+              .child(firebaseUser.uid)
+              .child('$uuid.jpeg');
       final StorageUploadTask task = firebaseStorageRef.putFile(_imageFile);
 
       _data.imagePath = uuid + '.jpeg';
 
       //写真のurlをダウンロードしている
       var downUrl = await (await task.onComplete).ref.getDownloadURL();
-
-      // _data.documentId = uuid;
 
       //urlに写真のURLを格納
       _data.url = downUrl.toString();

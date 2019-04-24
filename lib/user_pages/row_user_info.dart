@@ -32,14 +32,15 @@ class RowUserInfo extends StatelessWidget {
                   InkWell(
                     onTap: () {
                       Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              settings:
-                                  const RouteSettings(name: "/FollowPage"),
+                        context,
+                        MaterialPageRoute(
+                          settings: const RouteSettings(name: "/FollowPage"),
 
-                              //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
-                              builder: (BuildContext context) =>
-                                  UserFollowPage(userId)));
+                          //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
+                          builder: (BuildContext context) =>
+                              UserFollowPage(userId, "follow"),
+                        ),
+                      );
                     },
                     child: Column(
                       children: <Widget>[
@@ -57,14 +58,15 @@ class RowUserInfo extends StatelessWidget {
                   InkWell(
                     onTap: () {
                       Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              settings:
-                                  const RouteSettings(name: "/FollowPage"),
+                        context,
+                        MaterialPageRoute(
+                          settings: const RouteSettings(name: "/FollowPage"),
 
-                              //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
-                              builder: (BuildContext context) =>
-                                  UserFollowPage(userId)));
+                          //編集ボタンを押したということがわかるように引数documentをもたせている。新規投稿は引数なし。ifを使ってpostpageクラスでifを使って判別。
+                          builder: (BuildContext context) =>
+                              UserFollowPage(userId, "follower"),
+                        ),
+                      );
                     },
                     child: Column(
                       children: <Widget>[

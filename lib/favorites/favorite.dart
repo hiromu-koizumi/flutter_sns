@@ -19,28 +19,26 @@ class FavoriteButton extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(top: 1),
       child: StreamBuilder<QuerySnapshot>(
-          stream: Firestore.instance
-              .collection('users')
-              .document(firebaseUser.uid)
-              .collection("favorite")
-              .where("documentId", isEqualTo: document.documentID)
-              .snapshots(),
-          builder:
-              (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-            if (!snapshot.hasData) return const Text('Loading...');
-            final isFavorite = snapshot.data.documents.isNotEmpty;
-
-            //引数にonPressedの処理を入れている
-            return CoscoFavoriteButton(
-              isFavorite: isFavorite,
-              onPressed: () {
-                print("いいねボタンを押しました");
-
-                //お気に入りボタン押した投稿のdocumentIDと時間を保存する処理
-                uploadFavorite(document);
-              },
-            );
-          }),
+        stream: Firestore.instance
+            .collection('users')
+            .document(firebaseUser.uid)
+            .collection("favorite")
+            .where("documentId", isEqualTo: document.documentID)
+            .snapshots(),
+        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          if (!snapshot.hasData) return const Text('Loading...');
+          final isFavorite = snapshot.data.documents.isNotEmpty;
+          //引数にonPressedの処理を入れている
+          return CoscoFavoriteButton(
+            isFavorite: isFavorite,
+            onPressed: () {
+              print("いいねボタンを押しました");
+              //お気に入りボタン押した投稿のdocumentIDと時間を保存する処理
+              uploadFavorite(document);
+            },
+          );
+        },
+      ),
     );
   }
 

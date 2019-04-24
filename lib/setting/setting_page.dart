@@ -213,7 +213,11 @@ class _SettingPageState extends State<SettingPage> {
       //_imageFileに格納されている画像をfirebaseStorageに保存している。
       final StorageReference firebaseStorageRef =
           //imageフォルダの中に写真を保存している
-          FirebaseStorage.instance.ref().child('image').child('$uuid.jpeg');
+          FirebaseStorage.instance
+              .ref()
+              .child('userProfileImage')
+              .child(firebaseUser.uid)
+              .child('$uuid.jpeg');
       final StorageUploadTask task = firebaseStorageRef.putFile(_imageFile);
 
       _data.imagePath = uuid + '.jpeg';

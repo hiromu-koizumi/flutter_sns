@@ -8,8 +8,9 @@ class UserFollowPage extends StatefulWidget {
 
   // final String title;
   //userIdにはこのページのユーザーIDが入っている
-  UserFollowPage(this.userId);
+  UserFollowPage(this.userId, this.followOrFollower);
   final userId;
+  final followOrFollower;
 
   @override
   _UserFollowPageState createState() => _UserFollowPageState();
@@ -17,16 +18,26 @@ class UserFollowPage extends StatefulWidget {
 
 class _UserFollowPageState extends State<UserFollowPage>
     with SingleTickerProviderStateMixin {
-  final List<Tab> tabs = <Tab>[
-    Tab(text: 'フォロー'),
-    Tab(text: 'フォロワー'),
-  ];
   TabController _tabController;
+  List<Tab> tabs;
 
   //上タブのインスタンス作成
   @override
   void initState() {
     super.initState();
+    //フォロワーボタンを押した時はタブの左をフォロワータブに変更している
+    if (widget.followOrFollower == "follow") {
+      tabs = <Tab>[
+        Tab(text: 'フォロー'),
+        Tab(text: 'フォロワー'),
+      ];
+    } else {
+      tabs = <Tab>[
+        Tab(text: 'フォロワー'),
+        Tab(text: 'フォロー'),
+      ];
+    }
+
     _tabController = TabController(vsync: this, length: tabs.length);
   }
 
