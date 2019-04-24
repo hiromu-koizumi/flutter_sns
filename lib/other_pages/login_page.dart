@@ -3,11 +3,13 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cos/main.dart';
 import 'package:flutter_cos/other_pages/password_resetting_page.dart';
 import 'package:flutter_cos/user_pages/my_page/my_page.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 //いろんなページで使うから外出しといたほうが便利
 FirebaseUser firebaseUser;
@@ -118,6 +120,41 @@ class _LoginPageState extends State<LoginPage> {
                   );
                 },
               ),
+              SizedBox(
+                height: 20,
+              ),
+              RichText(
+                text: TextSpan(
+                  children: [
+                    TextSpan(
+                      text: '「ユーザー登録」をクリックすることで、',
+                      style: TextStyle(color: Colors.grey[800]),
+                    ),
+                    TextSpan(
+                      text: '利用規約、',
+                      style: TextStyle(color: Colors.lightBlue),
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () {
+                          launch(
+                              'https://www.cosco-times.com/cosport-terms-of-use/');
+                        },
+                    ),
+                    TextSpan(
+                      text: 'プライバシーポリシー',
+                      style: TextStyle(color: Colors.lightBlue),
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () {
+                          launch(
+                              'https://www.cosco-times.com/cosport-privacy-policy/');
+                        },
+                    ),
+                    TextSpan(
+                      text: 'に同意するものとします',
+                      style: TextStyle(color: Colors.grey[800]),
+                    )
+                  ],
+                ),
+              )
             ],
           ),
         ),

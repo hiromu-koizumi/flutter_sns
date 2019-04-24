@@ -56,7 +56,7 @@ class _MessagePageState extends State<MessagePage> {
                       .collection('posts')
                       //imagePathとドキュメントIDは同じ
                       .document(widget.document["documentId"])
-                      .collection("chat_room")
+                      .collection("chatRoom")
                       .orderBy("created_at", descending: true)
                       .snapshots(),
                   builder: (context, snapshot) {
@@ -129,7 +129,7 @@ class _MessagePageState extends State<MessagePage> {
           .collection('posts')
           .document(widget.document.documentID);
 
-      _messageRef.collection("chat_room").add({
+      _messageRef.collection("chatRoom").add({
         "message": message,
         "created_at": DateTime.now(),
         "userId": firebaseUser.uid,

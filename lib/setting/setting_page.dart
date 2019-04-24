@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -75,7 +76,9 @@ class _SettingPageState extends State<SettingPage> {
                 logoutOrDelete = "delete";
                 logoutDialog(context);
               },
-            )
+            ),
+            ListTile(title: Text("利用規約"), onTap: _termsUrl),
+            ListTile(title: Text("プライバシーポリシー"), onTap: _privacyUrl)
           ],
         ),
       ),
@@ -155,6 +158,24 @@ class _SettingPageState extends State<SettingPage> {
         ),
       ),
     );
+  }
+
+  _termsUrl() async {
+    const url = 'https://www.cosco-times.com/cosport-terms-of-use/';
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
+  }
+
+  _privacyUrl() async {
+    const url = 'https://www.cosco-times.com/cosport-privacy-policy/';
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
   }
 
   void logoutDialog(BuildContext context) {
